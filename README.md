@@ -22,6 +22,54 @@ python main.py --model mlp3 --dataset uci_digits --batch_size 32 --top_n_pct 15.
 
 This command will restructure a 3 layer fully-connected mlp based on the uci digits.
 
+## Command-Line Arguments (`main.py`)
+
+Run `main.py` to execute causal restructuring, run the DeepAbstract baseline, or perform comparative benchmarking followed by formal safety verification.
+
+```bash
+python main.py [OPTIONS]
+
+```
+
+### Argument Reference
+
+| Argument | Type | Default | Choices / Format | Description |
+| --- | --- | --- | --- | --- |
+| `--method` | `str` | `causal` | `causal`, `deepabstract`, `both` | Execution mode. Select `causal` for the proposed framework, `deepabstract` for the baseline, or `both` to run a comparative benchmark. |
+| `--model` | `str` | `resnet18` | `mlp3`, `mlp5`, `resnet18`, `resnet50`, `resnet101` | Base model architecture. |
+| `--dataset` | `str` | `cifar10` | `uci_digits`, `cifar10`, `cifar100`, `imagenet1k` | Target dataset for training, profiling, and evaluation. |
+| `--top_n_pct` | `float` | `15.0` | Any positive float | Percentage of top-ranked causal neurons or channels to reserve during causal restructuring. |
+| `--reduction_rate` | `float` | `0.425` | Float in `(0.0, 1.0)` | Target channel reduction ratio for the DeepAbstract baseline (e.g., `0.425` = 42.5% reduction). |
+| `--use_pretrained` | `flag` | `True` | Standalone flag | Enables loading pre-trained weights for supported models when available. |
+| `--force_train` | `flag` | `False` | Standalone flag | Bypasses cached model weights and forces full re-training of the teacher model. |
+| `--batch_size` | `int` | `32` | Positive integer | Data loader batch size for evaluation and fine-tuning passes. |
+| `--ft_epochs` | `int` | `5` | Non-negative integer | Number of fine-tuning epochs to run after model restructuring or abstraction. |
+
+---
+
+### Execution Examples
+
+#### 1. Run Proposed Causal Restructuring Framework (Default Setup)
+
+```bash
+python main.py --method causal --model resnet18 --dataset cifar10 --top_n_pct 15.0 --ft_epochs 5
+
+```
+
+#### 2. Run Comparative Benchmarking (`causal` vs. `deepabstract`)
+
+```bash
+python main.py --method both --model resnet18 --dataset cifar10 --top_n_pct 15.0 --reduction_rate 0.425 --batch_size 64
+
+```
+
+#### 3. Force Re-training of Teacher Model on an MLP
+
+```bash
+python main.py --method causal --model mlp5 --dataset uci_digits --force_train --ft_epochs 10
+
+```
+
 ## Experimental Results & Benchmarks
 
 We evaluate our **Causal Restructuring & Compression Framework** against the **DeepAbstract** baseline ([Ashok et al., 2020](https://github.com/steffi4321/DeepAbstract)) across varying reserve budgets (5% - 40%). Benchmarks measure both **Classification Accuracy (%)** and **Functional Agreement (%)** with the original baseline teacher model.
