@@ -7,9 +7,9 @@ import numpy as np
 def compute_causal_fingerprints_and_scores(model, val_loader, device):
     """Calculates activation fingerprints and single-unit causal ablation scores."""
     model.eval()
-    val_imgs = torch.cat([x.to(device) for x, _ in val_loader])
+    val_imgs = torch.cat([x for x, _ in val_loader]).to(device)
     
-    with torch.no_grad():
+    with torch.no_grad(), torch.amp.autocast("cuda"):
         baseline_logits = model(val_imgs)
         activations = model.get_layer_activations(val_imgs)
 
@@ -33,10 +33,12 @@ def compute_causal_fingerprints_and_scores(model, val_loader, device):
         all_fps[zero_mask] = 1e-8
 
     ablation_scores = np.zeros(len(unit_map))
+    
     with torch.no_grad():
         for global_idx, (l_idx, u_idx) in enumerate(unit_map):
-            ablated_logits = model.forward_with_ablation(val_imgs, l_idx, u_idx)
-            sim = F.cosine_similarity(baseline_logits, ablated_logits, dim=1).mean().item()
+            with torch.amp.autocast("cuda"):
+                ablated_logits = model.forward_with_ablation(val_imgs, l_idx, u_idx)
+                sim = F.cosine_similarity(baseline_logits, ablated_logits, dim=1).mean().item()
             ablation_scores[global_idx] = 1.0 - sim
 
     return all_fps, ablation_scores, unit_map
