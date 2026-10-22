@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torchvision.models as models
 from .base_model import RearrangeableModel
+import torch.nn.functional as F
 
 class ResNet18CIFAR(RearrangeableModel):
     def __init__(self, num_classes=10, load_pretrained=True):
@@ -67,10 +68,10 @@ class ResNet18CIFAR(RearrangeableModel):
         Channel masks are broadcasted spatially across [B, C, H, W] feature maps.
         """
         out = F.relu(self.bn1(self.conv1(x)))
-        
+
         # Track offset in the global mask vector
         offset = 0
-        
+
         # Helper to apply mask to 4D tensor [B, C, H, W] or 2D tensor [B, C]
         def apply_layer_mask(tensor):
             nonlocal offset
@@ -80,10 +81,10 @@ class ResNet18CIFAR(RearrangeableModel):
             if tensor.dim() == 4:
                 return tensor * layer_mask.view(1, c_dim, 1, 1)
             return tensor * layer_mask.unsqueeze(0)
-    
+
         # Conv1 mask
         out = apply_layer_mask(out)
-    
+
         # Process Layer Blocks
         for layer_group in [self.layer1, self.layer2, self.layer3, self.layer4]:
             for block in layer_group:
@@ -95,7 +96,7 @@ class ResNet18CIFAR(RearrangeableModel):
                 if block.shortcut is not None:
                     residual = block.shortcut(residual)
                 out = F.relu(out + residual)
-    
+
         out = F.avg_pool2d(out, 4)
         out = out.view(out.size(0), -1)
         out = self.linear(out)
