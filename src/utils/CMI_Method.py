@@ -5,11 +5,22 @@ import torch.nn.functional as F
 import numpy as np
 from tqdm import tqdm
 
-def compute_causal_fingerprints_and_scores(model, val_loader, device):
-    """Calculates activation fingerprints and single-unit causal ablation scores."""
+def compute_causal_fingerprints_and_scores(model, val_loader, device, max_profile_samples=256):
+    """Calculates activation fingerprints and single-unit causal ablation scores on a lightweight calibration set."""
     model.eval()
-    val_imgs = torch.cat([x for x, _ in val_loader]).to(device)
     
+    # 1. Collect a fast calibration subset (default: 256 samples)
+    val_imgs_list = []
+    total_samples = 0
+    for x, _ in val_loader:
+        val_imgs_list.append(x)
+        total_samples += x.size(0)
+        if total_samples >= max_profile_samples:
+            break
+            
+    val_imgs = torch.cat(val_imgs_list)[:max_profile_samples].to(device)
+
+    # 2. Baseline Forward Pass & Feature Extraction
     with torch.no_grad(), torch.amp.autocast("cuda"):
         baseline_logits = model(val_imgs)
         activations = model.get_layer_activations(val_imgs)
@@ -35,7 +46,7 @@ def compute_causal_fingerprints_and_scores(model, val_loader, device):
 
     ablation_scores = np.zeros(len(unit_map))
     
-    # Added tqdm progress bar to track individual unit ablation forward passes
+    # 3. Fast tqdm progress bar over unit ablations
     with torch.no_grad():
         for global_idx, (l_idx, u_idx) in enumerate(tqdm(unit_map, desc="Computing Causal Ablation Scores", unit="unit")):
             with torch.amp.autocast("cuda"):
