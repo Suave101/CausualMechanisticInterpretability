@@ -79,6 +79,12 @@ python main.py --method causal --model mlp5 --dataset uci_digits --force_train -
 
 We evaluate our **Causal Restructuring & Compression Framework** against the **DeepAbstract** baseline ([Ashok et al., 2020](https://github.com/steffi4321/DeepAbstract)) across varying reserve budgets (5% - 40%). Benchmarks measure both **Classification Accuracy (%)** and **Functional Agreement (%)** with the original baseline teacher model.
 
+> 💡 **Understanding the Reserve Budget & Compression Ratio**
+> 
+> The sweep X-axis evaluates the causal **Reserve Budget** ($r \in [5\%, 40\%]$)—the percentage of top causally critical units ($S_i$) explicitly protected from parameter folding. The remaining $(100 - r)\%$ background units undergo agglomerative medoid clustering at a ~50% reduction rate. 
+> 
+> Across the sweep, total network parameter removal ranges from **47.5% reduction** (at $r = 5\%$) to **30.0% reduction** (at $r = 40\%$). The *DeepAbstract* baseline is dynamically calibrated to match these exact parameter removal rates at every benchmark point to guarantee a strict, apples-to-apples comparison.
+
 ---
 
 ### 1. MLP-3 on UCI Digits
