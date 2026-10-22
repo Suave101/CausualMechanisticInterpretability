@@ -24,7 +24,7 @@ This command will restructure a 3 layer fully-connected mlp based on the uci dig
 
 ## Experimental Results & Benchmarks
 
-We evaluate our **Causal Restructuring & Compression Framework** against the **DeepAbstract** baseline ([Ashok et al., 2020](https://github.com/steffi4321/DeepAbstract)) across varying reserve budgets ($\text{top\_n\_pct} \in [5\%, 40\%]$). Benchmarks measure both **Classification Accuracy (%)** and **Functional Agreement (%)** with the original baseline teacher model.
+We evaluate our **Causal Restructuring & Compression Framework** against the **DeepAbstract** baseline ([Ashok et al., 2020](https://github.com/steffi4321/DeepAbstract)) across varying reserve budgets (5%, 40%). Benchmarks measure both **Classification Accuracy (%)** and **Functional Agreement (%)** with the original baseline teacher model.
 
 ---
 
@@ -42,10 +42,10 @@ In pure zero-shot mode (prior to gradient updates), causal profiling prevents re
 | **25.0%** | **Causal Restructuring (Ours)** | **79.5% (+11.0%)** | **82.0% (+11.5%)** | **91.39%** | **99.17%** |
 
 #### Visual Comparison (MLP-3)
-<p align="center">
-  <img src="results/mlp_zero_shot_comparison.png" width="48%" alt="MLP Zero Shot Comparison" />
-  <img src="results/mlp_fine_tuned_comparison.png" width="48%" alt="MLP Fine Tuned Comparison" />
-</p>
+
+<img src="results/mlp_zero_shot_comparison.png" alt="MLP Zero Shot Comparison" />
+
+<img src="results/mlp_fine_tuned_comparison.png" alt="MLP Fine Tuned Comparison" />
 
 ---
 
