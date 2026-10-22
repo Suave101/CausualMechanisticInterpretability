@@ -24,7 +24,7 @@ This command will restructure a 3 layer fully-connected mlp based on the uci dig
 
 ## Experimental Results & Benchmarks
 
-We evaluate our **Causal Restructuring & Compression Framework** against the **DeepAbstract** baseline ([Ashok et al., 2020](https://github.com/steffi4321/DeepAbstract)) across varying reserve budgets (5%, 40%). Benchmarks measure both **Classification Accuracy (%)** and **Functional Agreement (%)** with the original baseline teacher model.
+We evaluate our **Causal Restructuring & Compression Framework** against the **DeepAbstract** baseline ([Ashok et al., 2020](https://github.com/steffi4321/DeepAbstract)) across varying reserve budgets (5% - 40%). Benchmarks measure both **Classification Accuracy (%)** and **Functional Agreement (%)** with the original baseline teacher model.
 
 ---
 
@@ -68,5 +68,5 @@ For convolutional architectures, spatial activation fingerprinting combined with
 
 ### Key Takeaways
 
-1. **Zero-Shot Representation Fidelity**: Single-unit causal ablation profiling ($S_i = 1 - \text{CosineSimilarity}(z^T, z^{(i)})$) protects the primary decision manifold before parameter folding, yielding up to a **+19.0% accuracy advantage** over unweighted semantic clustering at a $15\%$ reserve budget.
+1. **Zero-Shot Representation Fidelity**: Single-unit causal ablation profiling protects the primary decision manifold before parameter folding, yielding up to a **+19.0% accuracy advantage** over unweighted semantic clustering at a $15\%$ reserve budget.
 2. **Capacity Recovery**: Knowledge Distillation (KD) combined with Exponential Moving Average (EMA) parameter smoothing recovers task capacity rapidly, achieving up to **99.72% functional agreement** with the teacher model while running on a compressed sub-network.
