@@ -7,7 +7,7 @@ from src.utils.checkpoint_utils import load_or_cache_model
 from src.models.mlp import build_3layer_mlp, build_5layer_mlp
 from src.models.resnet_cifar import ResNet18CIFAR
 from src.models.resnet_imagenet import ResNetImageNet
-from src.utils.CausalMechanisticInterpretabilityMethod import (
+from src.utils.CMI_Method import (
     compute_causal_fingerprints_and_scores,
     rearrange_neurons_front_loaded
 )
