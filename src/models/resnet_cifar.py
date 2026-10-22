@@ -60,3 +60,43 @@ class ResNet18CIFAR(RearrangeableModel):
     def get_total_units(self):
         # Total convolutional channels across residual stages (64 + 128 + 256 + 512 = 960)
         return 64 + 128 + 256 + 512
+    
+    def forward_with_mask(self, x, mask_vector):
+        """
+        Applies a global 1D binary mask across all convolutional channels and FC hidden units.
+        Channel masks are broadcasted spatially across [B, C, H, W] feature maps.
+        """
+        out = F.relu(self.bn1(self.conv1(x)))
+        
+        # Track offset in the global mask vector
+        offset = 0
+        
+        # Helper to apply mask to 4D tensor [B, C, H, W] or 2D tensor [B, C]
+        def apply_layer_mask(tensor):
+            nonlocal offset
+            c_dim = tensor.shape[1]
+            layer_mask = mask_vector[offset : offset + c_dim]
+            offset += c_dim
+            if tensor.dim() == 4:
+                return tensor * layer_mask.view(1, c_dim, 1, 1)
+            return tensor * layer_mask.unsqueeze(0)
+    
+        # Conv1 mask
+        out = apply_layer_mask(out)
+    
+        # Process Layer Blocks
+        for layer_group in [self.layer1, self.layer2, self.layer3, self.layer4]:
+            for block in layer_group:
+                residual = out
+                out = F.relu(block.bn1(block.conv1(out)))
+                out = apply_layer_mask(out)
+                out = block.bn2(block.conv2(out))
+                out = apply_layer_mask(out)
+                if block.shortcut is not None:
+                    residual = block.shortcut(residual)
+                out = F.relu(out + residual)
+    
+        out = F.avg_pool2d(out, 4)
+        out = out.view(out.size(0), -1)
+        out = self.linear(out)
+        return out

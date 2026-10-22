@@ -39,6 +39,20 @@ class FC_MLP(RearrangeableModel):
                 h[:, unit_idx] = 0.0
         return self.fc_out(h)
 
+    def forward_with_mask(self, x, mask_vector):
+        """
+        Applies a global 1D binary activation mask across all hidden units during inference.
+        """
+        h = torch.flatten(x, 1)
+        offset = 0
+        for idx, layer in enumerate(self.layers):
+            h = F.relu(layer(h))
+            dim = self.hidden_dims[idx]
+            layer_mask = mask_vector[offset : offset + dim]
+            h = h * layer_mask.unsqueeze(0)
+            offset += dim
+        return self.fc_out(h)
+
     def get_total_units(self):
         return sum(self.hidden_dims)
 
