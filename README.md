@@ -15,6 +15,11 @@ uv sync
 ```
 > Note: If you do not have uv installed, here is the link to do so: [https://docs.astral.sh/uv/getting-started/installation/](https://docs.astral.sh/uv/getting-started/installation/). If you cannot install uv, you can use the pip command `pip install -e .[dev]`.
 
+Next you must activate the virtual environment using venv:
+```bash
+venv\Scripts\activate.bat
+```
+
 To run an experiment, you can use the `main.py` wrapper for the project, here is a sample experiment that will run quickly:
 ```bash
 python main.py --model mlp3 --dataset uci_digits --batch_size 32 --top_n_pct 15.0
