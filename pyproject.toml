@@ -3,41 +3,41 @@ name = "causual-mechanistic-interpretability"
 version = "0.1.0"
 description = "Causal Mechanistic Interpretability environment"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12, <3.14"
 dependencies = [
-"cloudpickle3.1.2",
-"colorama0.4.6",
-"contourpy1.4.0",
-"cycler0.12.1",
-"filelock3.32.3",
-"fonttools4.67.0",
-"fsspec2026.7.0",
-"jinja23.1.6",
-"joblib1.6.0",
-"kiwisolver1.5.1",
-"markupsafe3.0.3",
-"matplotlib3.11.2",
-"mpmath1.3.0",
-"narwhals2.27.1",
-"networkx3.6.1",
-"numpy2.5.2",
-"packaging26.3",
-"pandas3.0.6",
-"pillow12.3.0",
-"pyparsing3.3.3",
-"python-dateutil3.0.0",
-"scikit-learn1.9.1",
-"scipy1.18.1",
-"setuptools78.1.0",
-"six1.17.0",
-"sympy1.13.1",
-"threadpoolctl3.7.0",
-"torch2.6.0+cu124",
-"torchaudio2.6.0+cu124",
-"torchvision0.21.0+cu124",
-"tqdm4.70.1",
-"typing-extensions4.16.0",
-"tzdata==2026.5",
+    "cloudpickle==3.1.2",
+    "colorama==0.4.6",
+    "contourpy==1.4.0",
+    "cycler==0.12.1",
+    "filelock==3.32.3",
+    "fonttools==4.67.0",
+    "fsspec==2026.7.0",
+    "jinja2==3.1.6",
+    "joblib==1.6.0",
+    "kiwisolver==1.5.1",
+    "markupsafe==3.0.3",
+    "matplotlib==3.11.2",
+    "mpmath==1.3.0",
+    "narwhals==2.27.1",
+    "networkx==3.6.1",
+    "numpy==2.5.2",
+    "packaging==26.3",
+    "pandas==3.0.6",
+    "pillow==12.3.0",
+    "pyparsing==3.3.3",
+    "python-dateutil==3.0.0",
+    "scikit-learn==1.9.1",
+    "scipy==1.18.1",
+    "setuptools==78.1.0",
+    "six==1.17.0",
+    "sympy==1.13.1",
+    "threadpoolctl==3.7.0",
+    "torch==2.6.0+cu124",
+    "torchaudio==2.6.0+cu124",
+    "torchvision==0.21.0+cu124",
+    "tqdm==4.70.1",
+    "typing-extensions==4.16.0",
+    "tzdata==2026.5",
 ]
 
 [[tool.uv.index]]
@@ -49,3 +49,8 @@ explicit = true
 torch = { index = "pytorch-cu124" }
 torchaudio = { index = "pytorch-cu124" }
 torchvision = { index = "pytorch-cu124" }
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
