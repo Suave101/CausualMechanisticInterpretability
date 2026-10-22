@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
+from tqdm import tqdm
 
 def compute_causal_fingerprints_and_scores(model, val_loader, device):
     """Calculates activation fingerprints and single-unit causal ablation scores."""
@@ -34,8 +35,9 @@ def compute_causal_fingerprints_and_scores(model, val_loader, device):
 
     ablation_scores = np.zeros(len(unit_map))
     
+    # Added tqdm progress bar to track individual unit ablation forward passes
     with torch.no_grad():
-        for global_idx, (l_idx, u_idx) in enumerate(unit_map):
+        for global_idx, (l_idx, u_idx) in enumerate(tqdm(unit_map, desc="Computing Causal Ablation Scores", unit="unit")):
             with torch.amp.autocast("cuda"):
                 ablated_logits = model.forward_with_ablation(val_imgs, l_idx, u_idx)
                 sim = F.cosine_similarity(baseline_logits, ablated_logits, dim=1).mean().item()
