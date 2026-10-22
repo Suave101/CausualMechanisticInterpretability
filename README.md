@@ -13,7 +13,7 @@ After that, you must download the required libraries using uv:
 ```bash
 uv sync
 ```
-> Note: If you do not have uv installed, here is the link to do so: [https://docs.astral.sh/uv/getting-started/installation/](https://docs.astral.sh/uv/getting-started/installation/)
+> Note: If you do not have uv installed, here is the link to do so: [https://docs.astral.sh/uv/getting-started/installation/](https://docs.astral.sh/uv/getting-started/installation/). If you cannot install uv, you can use the pip command `pip install -e .[dev]`.
 
 To run an experiment, you can use the `main.py` wrapper for the project, here is a sample experiment that will run quickly:
 ```bash
