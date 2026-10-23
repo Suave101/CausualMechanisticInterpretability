@@ -7,14 +7,32 @@ import numpy as np
 
 
 def run_experiment_command(cmd_args):
-    """Executes main.py as a subprocess and captures STDOUT."""
+    """Executes main.py while streaming terminal output live in real time."""
     cmd = [sys.executable, "main.py"] + cmd_args
-    print(f"Running: {' '.join(cmd)}")
-    result = subprocess.run(cmd, capture_output=True, text=True)
-    if result.returncode != 0:
-        print(f"Error executing command:\n{result.stderr}")
+    print(f"\n===========================================================")
+    print(f" Running: {' '.join(cmd)}")
+    print(f"===========================================================\n")
+    
+    process = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1
+    )
+    
+    captured_lines = []
+    # Stream output line-by-line in real time
+    for line in process.stdout:
+        print(line, end="", flush=True)
+        captured_lines.append(line)
+        
+    process.wait()
+    if process.returncode != 0:
+        print(f"\n[Error] Command failed with return code {process.returncode}")
         return None
-    return result.stdout
+        
+    return "".join(captured_lines)
 
 
 def parse_causal_metrics(output_text):

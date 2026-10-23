@@ -1,4 +1,6 @@
 checkpoints
 data
 *.pyc
+*.pyo
+*.pyd
 ./venv
