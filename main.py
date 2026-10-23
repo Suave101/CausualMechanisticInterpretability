@@ -32,7 +32,7 @@ def parse_args():
         type=str,
         default="causal",
         choices=["causal", "deepabstract", "both"],
-        help="Method to execute: 'causal' (Proposed Causal Restructuring), 'deepabstract' (DeepAbstract Baseline), or 'both' for comparative benchmarking"
+        help="Method to execute: 'causal', 'deepabstract', or 'both'"
     )
     
     # Model & Dataset Options
@@ -43,7 +43,7 @@ def parse_args():
     parser.add_argument("--top_n_pct", type=float, default=15.0, help="Percentage of top causal neurons/channels reserved")
     
     # DeepAbstract Baseline Parameters
-    parser.add_argument("--reduction_rate", type=float, default=0.425, help="Target channel reduction ratio for DeepAbstract (e.g., 0.425 = 42.5% reduction)")
+    parser.add_argument("--reduction_rate", type=float, default=0.425, help="Target channel reduction ratio for DeepAbstract")
     
     # Setup & Execution Parameters
     parser.add_argument("--use_pretrained", action="store_true", default=True)
@@ -96,21 +96,20 @@ def main():
         print("\n[Inference Profiling] Extracting fingerprints and calculating causal scores...")
         all_fps, scores, unit_map = compute_causal_fingerprints_and_scores(model, val_loader, device)
 
-        # Step 3 Partition: Identify Causal Reserve Units
-        top_indices, rem_indices = rearrange_neurons_front_loaded(scores, top_n_pct=args.top_n_pct)
-
         # Steps 3 & 4: Causal Medoid Clustering, Parameter Folding & Zero-Shot Evaluation
         sub_model, sorted_kept, zs_metrics = perform_causal_restructuring(
             teacher_model=model,
+            val_loader=val_loader,
+            test_loader=test_loader,
+            top_n_pct=args.top_n_pct,
             all_fps=all_fps,
             ablation_scores=scores,
-            top_indices=top_indices,
-            rem_indices=rem_indices,
-            test_loader=test_loader,
-            device=device
+            unit_map=unit_map,
+            device=device,
+            model_id=f"{args.model}_{args.dataset}"
         )
 
-        # Steps 5 & 6: Fine-Tuning via Knowledge Distillation (KD) + EMA & Benchmarking
+        # Steps 5 & 6: Fine-Tuning via Knowledge Distillation (KD) + EMA
         ft_metrics = fine_tune_submodel(
             sub_model=sub_model,
             teacher_model=model,

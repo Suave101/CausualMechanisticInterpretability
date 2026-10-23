@@ -20,6 +20,20 @@ def make_safe_fps(fps):
 
     return fps_safe / (norms + 1e-12)
 
+def recalibrate_batchnorm(model, val_loader, mask_vector, device, num_batches=15):
+    """Recalibrates BatchNorm running statistics after channel masking to prevent feature scale drift."""
+    model.train()
+    with torch.no_grad():
+        for i, (x, _) in enumerate(val_loader):
+            if i >= num_batches:
+                break
+            x = x.to(device)
+            if hasattr(model, "forward_with_mask"):
+                _ = model.forward_with_mask(x, mask_vector)
+            else:
+                _ = model(x)
+    model.eval()
+
 def run_deepabstract_baseline(
     teacher_model: nn.Module,
     val_loader: torch.utils.data.DataLoader,
@@ -95,28 +109,36 @@ def run_deepabstract_baseline(
 
     # 1. Zero-Shot Evaluation Pass
     sub_model = copy.deepcopy(teacher_model).to(device)
-    test_imgs, test_labels = [], []
-    for x, y in test_loader:
-        test_imgs.append(x)
-        test_labels.append(y)
-    X_test = torch.cat(test_imgs).to(device)
-    y_test = torch.cat(test_labels).to(device)
+    
+    mask_vector = torch.zeros(total_orig_units, device=device)
+    mask_vector[global_kept_indices] = 1.0
+
+    # Recalibrate BatchNorm running statistics for the baseline model
+    recalibrate_batchnorm(sub_model, val_loader, mask_vector, device)
+
+    sub_model.eval()
+    correct_zs = 0
+    correct_agr = 0
+    total_samples = 0
 
     with torch.no_grad():
-        teacher_logits = teacher_model(X_test)
-        teacher_preds = teacher_logits.argmax(dim=1)
-        
-        mask_vector = torch.zeros(total_orig_units, device=device)
-        mask_vector[global_kept_indices] = 1.0
-        
-        if hasattr(sub_model, "forward_with_mask"):
-            abs_logits = sub_model.forward_with_mask(X_test, mask_vector)
-        else:
-            abs_logits = sub_model(X_test)
+        for x, y in test_loader:
+            x, y = x.to(device), y.to(device)
+            teacher_logits = teacher_model(x)
+            teacher_preds = teacher_logits.argmax(dim=1)
 
-        abs_preds = abs_logits.argmax(dim=1)
-        zs_acc = (abs_preds == y_test).float().mean().item() * 100.0
-        zs_agreement = (abs_preds == teacher_preds).float().mean().item() * 100.0
+            if hasattr(sub_model, "forward_with_mask"):
+                abs_logits = sub_model.forward_with_mask(x, mask_vector)
+            else:
+                abs_logits = sub_model(x)
+
+            abs_preds = abs_logits.argmax(dim=1)
+            correct_zs += (abs_preds == y).sum().item()
+            correct_agr += (abs_preds == teacher_preds).sum().item()
+            total_samples += y.size(0)
+
+    zs_acc = (correct_zs / total_samples) * 100.0
+    zs_agreement = (correct_agr / total_samples) * 100.0
 
     print("\n--- [DeepAbstract Baseline Zero-Shot (Ashok et al. 2020)] ---")
     print(f"  -> Units Retained: {total_kept_units} / {total_orig_units} ({total_kept_units/total_orig_units*100:.1f}%)")

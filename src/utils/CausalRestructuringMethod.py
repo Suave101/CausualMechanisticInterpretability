@@ -8,7 +8,6 @@ from src.utils.CMI_Method import compute_causal_fingerprints_and_scores
 
 
 def make_safe_fps(fps):
-    """L2 unit-normalizes activation fingerprints and adds jitter to zero vectors."""
     fps_safe = fps.copy().astype(np.float64)
     norms = np.linalg.norm(fps_safe, axis=1, keepdims=True)
     zero_mask = (norms < 1e-12).squeeze()
@@ -24,7 +23,6 @@ def make_safe_fps(fps):
 
 
 def find_causal_medoid(fps, ablation_scores, members):
-    """Selects the cluster representative that minimizes distance to centroid and maximizes causal score."""
     if len(members) == 1:
         return members[0]
         
@@ -44,13 +42,8 @@ def find_causal_medoid(fps, ablation_scores, members):
 
 
 def cluster_background_units(fingerprints, ablation_scores, unit_map, reserved_units, reduction_rate=0.5):
-    """
-    Partitions non-reserved background units layer-by-layer and selects 
-    medoid units via agglomerative clustering.
-    """
     kept_units = set(reserved_units)
     
-    # Organize units by layer index
     layer_to_units = {}
     for global_idx, (l_idx, u_idx) in enumerate(unit_map):
         if l_idx not in layer_to_units:
@@ -86,14 +79,28 @@ def cluster_background_units(fingerprints, ablation_scores, unit_map, reserved_u
     return sorted(list(kept_units))
 
 
-def evaluate_masked_model(model, test_loader, kept_units, total_units, device):
-    """Evaluates zero-shot performance by zeroing out unselected unit channels during inference."""
+def recalibrate_batchnorm(model, val_loader, mask_vector, device, num_batches=15):
+    model.train()
+    with torch.no_grad():
+        for i, (x, _) in enumerate(val_loader):
+            if i >= num_batches:
+                break
+            x = x.to(device)
+            if hasattr(model, "forward_with_mask"):
+                _ = model.forward_with_mask(x, mask_vector)
+            else:
+                _ = model(x)
     model.eval()
-    
-    # Construct binary mask vector matching total units across all layers
+
+
+def evaluate_masked_model(model, test_loader, kept_units, total_units, device, val_loader=None):
     mask_vector = torch.zeros(total_units, device=device)
     mask_vector[list(kept_units)] = 1.0
+
+    if val_loader is not None:
+        recalibrate_batchnorm(model, val_loader, mask_vector, device)
     
+    model.eval()
     correct_zs = 0
     correct_agr = 0
     total_samples = 0
@@ -129,22 +136,23 @@ def evaluate_masked_model(model, test_loader, kept_units, total_units, device):
 
 def perform_causal_restructuring(
     teacher_model,
-    val_loader,
-    test_loader,
+    val_loader=None,
+    test_loader=None,
     top_n_pct=15.0,
     device=torch.device("cpu"),
     cache_dir="cache",
-    model_id="resnet18_cifar10",
+    model_id="mlp3_uci_digits",
     all_fps=None,
     ablation_scores=None,
     unit_map=None,
     **kwargs
 ):
-    """
-    Executes causal unit reservation and medoid clustering. Accepts pre-computed
-    fingerprints and ablation scores if passed from main.py, or loads from/saves to cache.
-    """
-    # 1. Use passed arguments if provided; otherwise load from cache or compute
+    # Auto-resolve loader references if missing positionally
+    if test_loader is None and val_loader is not None:
+        test_loader = val_loader
+    if val_loader is None and test_loader is not None:
+        val_loader = test_loader
+
     if all_fps is not None and ablation_scores is not None and unit_map is not None:
         fingerprints = all_fps
     else:
@@ -153,7 +161,7 @@ def perform_causal_restructuring(
 
         if os.path.exists(cache_path):
             print(f"--> [Cache Hit] Loading cached ablation scores & fingerprints from {cache_path}")
-            cache_data = torch.load(cache_path, map_location="cpu")
+            cache_data = torch.load(cache_path, map_location="cpu", weights_only=False)
             ablation_scores = cache_data["ablation_scores"]
             fingerprints = cache_data["fingerprints"]
             unit_map = cache_data["unit_map"]
@@ -170,13 +178,11 @@ def perform_causal_restructuring(
             }, cache_path)
             print(f"--> Saved causal metrics to {cache_path}")
 
-    # Ensure numpy arrays for indexing and clustering
     if isinstance(ablation_scores, torch.Tensor):
         ablation_scores = ablation_scores.cpu().numpy()
     if isinstance(fingerprints, torch.Tensor):
         fingerprints = fingerprints.cpu().numpy()
 
-    # 2. Hybrid Reserve Allocation & Background Medoid Clustering
     total_units = len(ablation_scores)
     k_reserve = max(1, int(round(total_units * (top_n_pct / 100.0))))
     
@@ -191,10 +197,9 @@ def perform_causal_restructuring(
         reduction_rate=0.5
     )
 
-    # 3. Evaluate zero-shot masked model
     sub_model = copy.deepcopy(teacher_model).to(device)
     zs_metrics = evaluate_masked_model(
-        sub_model, test_loader, kept_units, total_units, device
+        sub_model, test_loader, kept_units, total_units, device, val_loader=val_loader
     )
 
     return sub_model, kept_units, zs_metrics
