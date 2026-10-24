@@ -1,3 +1,4 @@
+#!/bin/sh
 # --- Slurm Job Configuration ---
 #SBATCH --job-name=CMI_RN50
 #SBATCH --nodes=1
