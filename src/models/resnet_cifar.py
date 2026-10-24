@@ -57,7 +57,7 @@ class Bottleneck(nn.Module):
 
     def forward(self, x):
         out = F.relu(self.bn1(self.conv1(x)))
-        out = F.relu(self.bn2(self.conv2(x)))
+        out = F.relu(self.bn2(self.conv2(out)))  # Fixed: passed 'out' instead of 'x'
         out = self.bn3(self.conv3(out))
         out += self.shortcut(x)
         out = F.relu(out)
@@ -321,5 +321,4 @@ class ResNet50CIFAR(RearrangeableModel):
         return out
 
     def get_total_units(self):
-        # 64 stem + layer1(3* (64+64+256)) + layer2(4* (128+128+512)) + layer3(6* (256+256+1024)) + layer4(3* (512+512+2048))
         return 64 + (3 * (64 + 64 + 256)) + (4 * (128 + 128 + 512)) + (6 * (256 + 256 + 1024)) + (3 * (512 + 512 + 2048))
