@@ -1,12 +1,12 @@
-#!/bin/bash
-#SBATCH --job-name=resnet50_causal_sweep
-#SBATCH --output=resnet50_sweep_%j.log
-#SBATCH --error=resnet50_sweep_%j.err
+# --- Slurm Job Configuration ---
+#SBATCH --job-name=CMI_RN50
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --gpus=4
-#SBATCH --cpus-per-task=16
-#SBATCH --time=12:00:00
+#SBATCH --output=experimentOutput.log
+#SBATCH --partition=gpu2
+#SBATCH --cpus-per-task=12
+#SBATCH --gres=gpu:4
+#SBATCH --mem=32GB
 
 # 1. Load Cluster Modules
 module load datasets/cifar-10
