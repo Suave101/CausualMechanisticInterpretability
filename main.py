@@ -102,6 +102,7 @@ def main():
             val_loader=val_loader,
             test_loader=test_loader,
             top_n_pct=args.top_n_pct,
+            reduction_rate=args.reduction_rate,
             all_fps=all_fps,
             ablation_scores=scores,
             unit_map=unit_map,

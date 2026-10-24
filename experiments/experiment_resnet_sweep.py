@@ -35,32 +35,25 @@ def run_experiment_command(cmd_args):
 
 
 def parse_metrics(output_str):
-    """
-    Extracts Zero-Shot & Fine-Tuned metrics as well as actual % Neurons Kept.
-    """
+    """Extracts Zero-Shot & Fine-Tuned metrics as well as actual % Neurons Kept."""
     metrics = {}
     
-    # Parse % Neurons Kept: e.g. "Units Retained: 2050 / 3904 (52.5%)"
     retained_match = re.search(r"Units Retained:\s*\d+\s*/\s*\d+\s*\(([\d\.]+)%\)", output_str)
     if retained_match:
         metrics["pct_kept"] = float(retained_match.group(1))
 
-    # Parse Zero-Shot Accuracy
     zs_acc_match = re.search(r"Zero-Shot Accuracy:\s*([\d\.]+)%", output_str)
     if zs_acc_match:
         metrics["zs_acc"] = float(zs_acc_match.group(1))
 
-    # Parse Zero-Shot Teacher Agreement
     zs_agr_match = re.search(r"Zero-Shot Teacher Agreement:\s*([\d\.]+)%", output_str)
     if zs_agr_match:
         metrics["zs_agr"] = float(zs_agr_match.group(1))
 
-    # Parse Fine-Tuned Accuracy
     ft_acc_match = re.search(r"Fine-Tuned Accuracy:\s*([\d\.]+)%", output_str)
     if ft_acc_match:
         metrics["ft_acc"] = float(ft_acc_match.group(1))
 
-    # Parse Fine-Tuned Teacher Agreement
     ft_agr_match = re.search(r"Fine-Tuned Teacher Agreement:\s*([\d\.]+)%", output_str)
     if ft_agr_match:
         metrics["ft_agr"] = float(ft_agr_match.group(1))
@@ -69,48 +62,59 @@ def parse_metrics(output_str):
 
 
 def main():
-    sweep_budgets = [5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 40.0]
+    target_kept_pcts = [10.0, 30.0, 50.0, 80.0, 100.0]
     
     causal_pct_kept, causal_zs_acc, causal_zs_agr, causal_ft_acc, causal_ft_agr = [], [], [], [], []
     deepabs_pct_kept, deepabs_zs_acc, deepabs_zs_agr, deepabs_ft_acc, deepabs_ft_agr = [], [], [], [], []
 
-    for budget in sweep_budgets:
-        print(f"\n--- Testing Sweep Budget = {budget}% ---")
+    for target_pct in target_kept_pcts:
+        print(f"\n===========================================================")
+        print(f" Testing Target Neurons Kept = {target_pct}%")
+        print(f"===========================================================")
         
+        # Calculate parameters for Causal Restructuring
+        if target_pct >= 100.0:
+            causal_reserve = 100.0
+            causal_bg_rr = 0.0
+        else:
+            causal_reserve = 0.3 * target_pct
+            bg_total_pct = 100.0 - causal_reserve
+            bg_kept_pct = target_pct - causal_reserve
+            causal_bg_rr = 1.0 - (bg_kept_pct / bg_total_pct)
+
         # 1. Run Causal Restructuring (Ours)
         causal_args = [
             "--method", "causal",
             "--model", "resnet18",
             "--dataset", "cifar10",
             "--batch_size", "32",
-            "--top_n_pct", str(budget),
+            "--top_n_pct", f"{causal_reserve:.4f}",
+            "--reduction_rate", f"{causal_bg_rr:.4f}",
             "--ft_epochs", "5"
         ]
         causal_out = run_experiment_command(causal_args)
         if causal_out:
             m = parse_metrics(causal_out)
-            # Default fallback if parsing fails: 50 + 0.5 * budget
-            causal_pct_kept.append(m.get("pct_kept", 50.0 + 0.5 * budget))
+            causal_pct_kept.append(m.get("pct_kept", target_pct))
             causal_zs_acc.append(m.get("zs_acc", 0.0))
             causal_zs_agr.append(m.get("zs_agr", 0.0))
             causal_ft_acc.append(m.get("ft_acc", 0.0))
             causal_ft_agr.append(m.get("ft_agr", 0.0))
 
         # 2. Run DeepAbstract Baseline
-        # DeepAbstract maps reduction_rate from reserve budget: (100 - budget) / 100 * 0.5
-        deepabs_reduction = (100.0 - budget) / 100.0 * 0.5
+        deepabs_rr = 1.0 - (target_pct / 100.0)
         deepabs_args = [
             "--method", "deepabstract",
             "--model", "resnet18",
             "--dataset", "cifar10",
             "--batch_size", "32",
-            "--reduction_rate", f"{deepabs_reduction:.4f}",
+            "--reduction_rate", f"{deepabs_rr:.4f}",
             "--ft_epochs", "5"
         ]
         deepabs_out = run_experiment_command(deepabs_args)
         if deepabs_out:
             m = parse_metrics(deepabs_out)
-            deepabs_pct_kept.append(m.get("pct_kept", 50.0 + 0.5 * budget))
+            deepabs_pct_kept.append(m.get("pct_kept", target_pct))
             deepabs_zs_acc.append(m.get("zs_acc", 0.0))
             deepabs_zs_agr.append(m.get("zs_agr", 0.0))
             deepabs_ft_acc.append(m.get("ft_acc", 0.0))

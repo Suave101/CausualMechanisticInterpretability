@@ -139,6 +139,7 @@ def perform_causal_restructuring(
     val_loader=None,
     test_loader=None,
     top_n_pct=15.0,
+    reduction_rate=0.5,
     device=torch.device("cpu"),
     cache_dir="cache",
     model_id="mlp3_uci_digits",
@@ -194,7 +195,7 @@ def perform_causal_restructuring(
         ablation_scores=ablation_scores,
         unit_map=unit_map,
         reserved_units=reserved_units,
-        reduction_rate=0.5
+        reduction_rate=reduction_rate
     )
 
     sub_model = copy.deepcopy(teacher_model).to(device)
