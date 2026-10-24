@@ -1,69 +1,137 @@
-# src/utils/DeepAbstractBaseline.py
 import copy
 import torch
 import torch.nn as nn
 import numpy as np
 from sklearn.cluster import KMeans, AgglomerativeClustering
-from src.utils.FineTuningMethod import fine_tune_submodel
 
-def make_safe_fps(fps):
-    fps_safe = fps.copy().astype(np.float64)
-    norms = np.linalg.norm(fps_safe, axis=1, keepdims=True)
-    zero_mask = (norms < 1e-12).squeeze()
-    
-    if np.ndim(zero_mask) == 0:
-        zero_mask = np.array([zero_mask])
+def get_linear_layers(model: nn.Module):
+    """Extracts all nn.Linear submodules from the model in execution order[cite: 106]."""
+    return [module for module in model.modules() if isinstance(module, nn.Linear)]
 
-    if np.any(zero_mask):
-        fps_safe[zero_mask] += np.random.normal(0, 1e-7, size=fps_safe[zero_mask].shape)
-        norms = np.linalg.norm(fps_safe, axis=1, keepdims=True)
-
-    return fps_safe / (norms + 1e-12)
-
-def recalibrate_batchnorm(model, val_loader, mask_vector, device, num_batches=15):
-    """Recalibrates BatchNorm running statistics after channel masking to prevent feature scale drift."""
-    model.train()
-    with torch.no_grad():
-        for i, (x, _) in enumerate(val_loader):
-            if i >= num_batches:
-                break
-            x = x.to(device)
-            if hasattr(model, "forward_with_mask"):
-                _ = model.forward_with_mask(x, mask_vector)
-            else:
-                _ = model(x)
+def evaluate_accuracy(model: nn.Module, data_loader: torch.utils.data.DataLoader, device: torch.device, mask_vector: torch.Tensor = None) -> float:
+    """Evaluates classification accuracy of the network[cite: 106, 110]."""
     model.eval()
+    correct = 0
+    total = 0
+    with torch.no_grad():
+        for x, y in data_loader:
+            x, y = x.to(device), y.to(device)
+            if mask_vector is not None and hasattr(model, "forward_with_mask"):
+                logits = model.forward_with_mask(x, mask_vector)
+            else:
+                logits = model(x)
+            preds = logits.argmax(dim=1)
+            correct += (preds == y).sum().item()
+            total += y.size(0)
+    return (correct / total) * 100.0 if total > 0 else 0.0
+
+def abstract_layer(
+    sub_model: nn.Module,
+    layer_idx: int,
+    activations: np.ndarray,
+    n_clusters: int,
+    cluster_method: str,
+    linear_layers: list,
+    global_unit_offset: int
+):
+    """
+    Applies Algorithm 1 from Ashok et al. (2020) to a single layer:
+    1. Clusters raw activation vectors.
+    2. Selects representative neurons (rep(C)) closest to centroids[cite: 108, 109].
+    3. Sums outgoing weights into representative neurons: W_{*, rep(C)}^{(l)} <- sum_{i in C} W_{*, i}^{(l)}.
+    4. Zeroes out outgoing weights of non-representative neurons.
+    """
+    n_units = activations.shape[0]
+    actual_k = min(max(1, n_clusters), n_units)
+    
+    # 1. Cluster raw activation vectors directly (without L2-normalization)[cite: 108]
+    if actual_k == n_units:
+        labels = np.arange(n_units)
+    else:
+        if cluster_method.lower() == "kmeans":
+            clusterer = KMeans(n_clusters=actual_k, random_state=42, n_init=10)
+        else:
+            clusterer = AgglomerativeClustering(n_clusters=actual_k, metric="euclidean", linkage="average")
+        labels = clusterer.fit_predict(activations)
+
+    layer_kept = []
+    layer_mask_indices = []
+
+    # Identify linear layers connecting layer l to layer l+1
+    has_linear = (linear_layers is not None and (layer_idx + 1) < len(linear_layers))
+    next_linear = linear_layers[layer_idx + 1] if has_linear else None
+
+    for c_id in range(actual_k):
+        members = np.where(labels == c_id)[0]
+        if len(members) == 0:
+            continue
+        
+        # Find representative neuron rep(C) closest to cluster centroid[cite: 108, 109]
+        if len(members) == 1:
+            rep = members[0]
+        else:
+            cluster_fps = activations[members]
+            centroid = cluster_fps.mean(axis=0)
+            dists = np.linalg.norm(cluster_fps - centroid, axis=1)
+            rep = members[np.argmin(dists)]
+
+        layer_kept.append(rep)
+        layer_mask_indices.append(global_unit_offset + rep)
+
+        # 2. Outgoing Weight Aggregation (Algorithm 1, Line 7)[cite: 108]
+        if next_linear is not None:
+            with torch.no_grad():
+                # Sum outgoing weights of all cluster members into representative[cite: 108]
+                summed_outgoing = next_linear.weight.data[:, members].sum(dim=1)
+                next_linear.weight.data[:, rep] = summed_outgoing
+                
+                # Zero out outgoing weights for non-representatives[cite: 108]
+                non_reps = [m for m in members if m != rep]
+                if len(non_reps) > 0:
+                    next_linear.weight.data[:, non_reps] = 0.0
+
+    return layer_kept, layer_mask_indices
 
 def run_deepabstract_baseline(
     teacher_model: nn.Module,
     val_loader: torch.utils.data.DataLoader,
     test_loader: torch.utils.data.DataLoader,
-    train_loader: torch.utils.data.DataLoader = None,
     reduction_rate: float = 0.4,
+    accuracy_threshold: float = None,  # Parameter alpha in Paper Algorithm 2
     cluster_method: str = "kmeans",
     device: torch.device = torch.device("cpu"),
-    ft_epochs: int = 0
+    num_calibration_samples: int = 54000  # Calibration set size N[cite: 108, 112]
 ):
+    """
+    Executes the exact DeepAbstract framework (Ashok et al., 2020)[cite: 103, 108, 110].
+    """
     teacher_model.eval()
     
+    # Collect calibration dataset samples X[cite: 108]
     val_imgs_list = []
     total_samples = 0
     for x, _ in val_loader:
         val_imgs_list.append(x)
         total_samples += x.size(0)
-        if total_samples >= 256:
+        if total_samples >= num_calibration_samples:
             break
-    val_imgs = torch.cat(val_imgs_list)[:256].to(device)
+    val_imgs = torch.cat(val_imgs_list)[:num_calibration_samples].to(device)
 
+    # Extract raw activation profiles A across calibration inputs[cite: 108]
     with torch.no_grad():
         activations = teacher_model.get_layer_activations(val_imgs)
+
+    sub_model = copy.deepcopy(teacher_model).to(device)
+    linear_layers = get_linear_layers(sub_model)
 
     global_kept_indices = []
     global_unit_offset = 0
     total_orig_units = 0
     total_kept_units = 0
 
+    # Process hidden layers sequentially (Algorithm 1 & 2)[cite: 108, 110]
     for l_idx, act in enumerate(activations):
+        # Format raw activation vector a_i = [z_i(x_1), ..., z_i(x_N)][cite: 108]
         if act.dim() == 4:
             fp = act.mean(dim=(2, 3)).T.cpu().numpy()
         else:
@@ -72,54 +140,52 @@ def run_deepabstract_baseline(
         n_units = fp.shape[0]
         total_orig_units += n_units
         
-        target_k = max(1, int(round(n_units * (1.0 - reduction_rate))))
-        actual_k = min(target_k, n_units)
-        
-        fp_safe = make_safe_fps(fp)
-
-        if actual_k == n_units:
-            layer_kept = list(range(n_units))
-        else:
-            if cluster_method.lower() == "kmeans":
-                clusterer = KMeans(n_clusters=actual_k, random_state=42, n_init=5)
-            else:
-                clusterer = AgglomerativeClustering(n_clusters=actual_k, metric="euclidean", linkage="average")
+        # Target cluster count selection[cite: 108, 110]
+        if accuracy_threshold is not None:
+            # Algorithm 2: Binary Search for optimal k bounded by accuracy alpha
+            low = 1
+            high = n_units
+            best_k = n_units
             
-            labels = clusterer.fit_predict(fp_safe)
-            layer_kept = []
-
-            for c_id in range(actual_k):
-                members = np.where(labels == c_id)[0]
-                if len(members) == 0:
-                    continue
-                elif len(members) == 1:
-                    layer_kept.append(members[0])
+            while low <= high:
+                mid = (low + high) // 2
+                temp_model = copy.deepcopy(sub_model)
+                temp_lineable = get_linear_layers(temp_model)
+                
+                abstract_layer(
+                    temp_model, l_idx, fp, mid, cluster_method, 
+                    temp_lineable, global_unit_offset
+                )
+                acc = evaluate_accuracy(temp_model, val_loader, device)
+                
+                if acc >= accuracy_threshold:
+                    best_k = mid
+                    high = mid - 1
                 else:
-                    cluster_fps = fp_safe[members]
-                    centroid = cluster_fps.mean(axis=0)
-                    dists = np.linalg.norm(cluster_fps - centroid, axis=1)
-                    medoid = members[np.argmin(dists)]
-                    layer_kept.append(medoid)
+                    low = mid + 1
+            target_k = best_k
+        else:
+            target_k = max(1, int(round(n_units * (1.0 - reduction_rate))))
 
-        for u in layer_kept:
-            global_kept_indices.append(global_unit_offset + u)
-            
+        # Apply abstraction to layer l[cite: 108]
+        layer_kept, mask_indices = abstract_layer(
+            sub_model, l_idx, fp, target_k, cluster_method, 
+            linear_layers, global_unit_offset
+        )
+
+        global_kept_indices.extend(mask_indices)
         global_unit_offset += n_units
         total_kept_units += len(layer_kept)
 
-    # 1. Zero-Shot Evaluation Pass
-    sub_model = copy.deepcopy(teacher_model).to(device)
-    
+    # Construct global binary mask vector
     mask_vector = torch.zeros(total_orig_units, device=device)
     mask_vector[global_kept_indices] = 1.0
 
-    # Recalibrate BatchNorm running statistics for the baseline model
-    recalibrate_batchnorm(sub_model, val_loader, mask_vector, device)
-
+    # Pure Zero-Shot Evaluation Pass (No BatchNorm recalibration, no fine-tuning)
     sub_model.eval()
     correct_zs = 0
     correct_agr = 0
-    total_samples = 0
+    total_test_samples = 0
 
     with torch.no_grad():
         for x, y in test_loader:
@@ -135,36 +201,21 @@ def run_deepabstract_baseline(
             abs_preds = abs_logits.argmax(dim=1)
             correct_zs += (abs_preds == y).sum().item()
             correct_agr += (abs_preds == teacher_preds).sum().item()
-            total_samples += y.size(0)
+            total_test_samples += y.size(0)
 
-    zs_acc = (correct_zs / total_samples) * 100.0
-    zs_agreement = (correct_agr / total_samples) * 100.0
+    zs_acc = (correct_zs / total_test_samples) * 100.0
+    zs_agreement = (correct_agr / total_test_samples) * 100.0
 
-    print("\n--- [DeepAbstract Baseline Zero-Shot (Ashok et al. 2020)] ---")
+    print("\n--- [DeepAbstract Zero-Shot Abstraction (Ashok et al. 2020)] ---")
     print(f"  -> Units Retained: {total_kept_units} / {total_orig_units} ({total_kept_units/total_orig_units*100:.1f}%)")
     print(f"  -> Zero-Shot Accuracy: {zs_acc:.2f}%")
-    print(f"  -> Zero-Shot Teacher Agreement: {zs_agreement:.2f}%")
-
-    ft_acc, ft_agreement = zs_acc, zs_agreement
-    # 2. Fine-Tuning Pass (if ft_epochs > 0 and train_loader provided)
-    if ft_epochs > 0 and train_loader is not None:
-        ft_res = fine_tune_submodel(
-            sub_model=sub_model,
-            teacher_model=teacher_model,
-            train_loader=train_loader,
-            test_loader=test_loader,
-            device=device,
-            ft_epochs=ft_epochs
-        )
-        ft_acc = ft_res["ft_acc"]
-        ft_agreement = ft_res["ft_agreement"]
+    print(f"  -> Teacher Agreement: {zs_agreement:.2f}%")
 
     return {
-        "method": "DeepAbstract_Baseline",
+        "method": "DeepAbstract_Exact",
         "total_units": total_orig_units,
         "kept_units": total_kept_units,
         "zs_acc": zs_acc,
-        "zs_agreement": zs_agreement,
-        "ft_acc": ft_acc,
-        "ft_agreement": ft_agreement
+        "zs_agreement": zs_agreement
     }
+    
