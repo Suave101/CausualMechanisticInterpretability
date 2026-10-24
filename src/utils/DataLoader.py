@@ -25,6 +25,7 @@ Dataset Image Transformations Summary:
      * Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))
 """
 
+import os
 import torch
 from torch.utils.data import DataLoader, Subset
 from sklearn.model_selection import StratifiedShuffleSplit
@@ -41,7 +42,26 @@ class DataTypes:
     CIFAR100 = "cifar100"
     IMAGENET1K = "imagenet1k"
 
-def get_dataset(dataset: DataTypes, batch_size: int = 128, data_dir: str = "./data"):
+def resolve_cifar10_root(default_data_dir: str):
+    """
+    Auto-detects cluster dataset environment variables ($CIFAR10_ROOT or $AIP_DATASETS/cifar-10).
+    Falls back to default_data_dir if environment variables are not found.
+    """
+    if "CIFAR10_ROOT" in os.environ and os.path.exists(os.environ["CIFAR10_ROOT"]):
+        print(f"--> [Cluster Dataset] Using $CIFAR10_ROOT: {os.environ['CIFAR10_ROOT']}")
+        return os.environ["CIFAR10_ROOT"], False
+        
+    if "AIP_DATASETS" in os.environ:
+        aip_cifar_path = os.path.join(os.environ["AIP_DATASETS"], "cifar-10")
+        if os.path.exists(aip_cifar_path):
+            print(f"--> [Cluster Dataset] Using $AIP_DATASETS path: {aip_cifar_path}")
+            return aip_cifar_path, False
+
+    # Fallback to local default path
+    return default_data_dir, True
+
+
+def get_dataset(dataset: str, batch_size: int = 128, data_dir: str = "./data"):
     """
     Returns (train_loader, val_loader, test_loader, num_classes, input_channels, is_conv)
     """
@@ -68,6 +88,12 @@ def get_dataset(dataset: DataTypes, batch_size: int = 128, data_dir: str = "./da
         ds_cls = torchvision.datasets.CIFAR10 if is_c10 else torchvision.datasets.CIFAR100
         num_classes = 10 if is_c10 else 100
         
+        # Auto-resolve cluster paths for CIFAR-10
+        if is_c10:
+            effective_root, should_download = resolve_cifar10_root(data_dir)
+        else:
+            effective_root, should_download = data_dir, True
+
         transform_train = transforms.Compose([
             transforms.RandomCrop(32, padding=4),
             transforms.RandomHorizontalFlip(),
@@ -79,8 +105,8 @@ def get_dataset(dataset: DataTypes, batch_size: int = 128, data_dir: str = "./da
             transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
         ])
         
-        full_train = ds_cls(root=data_dir, train=True, download=True, transform=transform_train)
-        test_set = ds_cls(root=data_dir, train=False, download=True, transform=transform_test)
+        full_train = ds_cls(root=effective_root, train=True, download=should_download, transform=transform_train)
+        test_set = ds_cls(root=effective_root, train=False, download=should_download, transform=transform_test)
         
         targets = np.array(full_train.targets)
         sss = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
@@ -94,7 +120,6 @@ def get_dataset(dataset: DataTypes, batch_size: int = 128, data_dir: str = "./da
         )
 
     elif dataset == DataTypes.IMAGENET1K:
-        # Standard ImageNet pipeline setup
         transform = transforms.Compose([
             transforms.Resize(256),
             transforms.CenterCrop(224),
