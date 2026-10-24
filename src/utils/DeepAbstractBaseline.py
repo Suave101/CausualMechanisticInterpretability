@@ -143,7 +143,7 @@ def run_deepabstract_baseline(
     print("\n--- [DeepAbstract Baseline Zero-Shot (Ashok et al. 2020)] ---")
     print(f"  -> Units Retained: {total_kept_units} / {total_orig_units} ({total_kept_units/total_orig_units*100:.1f}%)")
     print(f"  -> Zero-Shot Accuracy: {zs_acc:.2f}%")
-    print(f"  -> Zero-Shot Agreement: {zs_agreement:.2f}%")
+    print(f"  -> Zero-Shot Teacher Agreement: {zs_agreement:.2f}%")
 
     ft_acc, ft_agreement = zs_acc, zs_agreement
     # 2. Fine-Tuning Pass (if ft_epochs > 0 and train_loader provided)

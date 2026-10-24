@@ -35,7 +35,6 @@ def run_experiment_command(cmd_args):
 
 
 def parse_metrics(output_str):
-    """Extracts Zero-Shot & Fine-Tuned metrics as well as actual % Neurons Kept."""
     metrics = {}
     
     retained_match = re.search(r"Units Retained:\s*\d+\s*/\s*\d+\s*\(([\d\.]+)%\)", output_str)
@@ -46,7 +45,8 @@ def parse_metrics(output_str):
     if zs_acc_match:
         metrics["zs_acc"] = float(zs_acc_match.group(1))
 
-    zs_agr_match = re.search(r"Zero-Shot Teacher Agreement:\s*([\d\.]+)%", output_str)
+    # Regex handles optional "Teacher " word gracefully
+    zs_agr_match = re.search(r"Zero-Shot (?:Teacher )?Agreement:\s*([\d\.]+)%", output_str)
     if zs_agr_match:
         metrics["zs_agr"] = float(zs_agr_match.group(1))
 

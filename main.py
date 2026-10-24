@@ -5,7 +5,7 @@ import torch
 from src.utils.DataLoader import get_dataset
 from src.utils.checkpoint_utils import load_or_cache_model
 from src.models.mlp import build_3layer_mlp, build_5layer_mlp
-from src.models.resnet_cifar import ResNet18CIFAR
+from src.models.resnet_cifar import ResNet18CIFAR, ResNet50CIFAR
 from src.models.resnet_imagenet import ResNetImageNet
 
 # Causal Restructuring Framework Modules
@@ -71,10 +71,10 @@ def main():
         model = build_5layer_mlp(in_dim=in_dim, num_classes=num_classes)
     elif args.model == "resnet18" and "cifar" in args.dataset:
         model = ResNet18CIFAR(num_classes=num_classes, load_pretrained=args.use_pretrained)
+    elif args.model == "resnet50" and "cifar" in args.dataset:
+        model = ResNet50CIFAR(num_classes=num_classes, load_pretrained=args.use_pretrained)
     elif args.model in ["resnet18", "resnet50", "resnet101"]:
         model = ResNetImageNet(variant=args.model, pretrained=args.use_pretrained)
-    else:
-        raise ValueError(f"Unsupported model-dataset combination: {args.model} on {args.dataset}")
 
     # 3. Load Cached or Pre-Trained Teacher Weights
     model = load_or_cache_model(
@@ -92,11 +92,13 @@ def main():
         print(" RUNNING: Causal Restructuring & Compression Framework")
         print("=======================================================")
         
-        # Step 2: Causal Fingerprinting & Score Profiling
-        print("\n[Inference Profiling] Extracting fingerprints and calculating causal scores...")
-        all_fps, scores, unit_map = compute_causal_fingerprints_and_scores(model, val_loader, device)
+        # Step 2: Causal Fingerprinting & Score Profiling (Now Cached!)
+        model_id_str = f"{args.model}_{args.dataset}"
+        all_fps, scores, unit_map = compute_causal_fingerprints_and_scores(
+            model, val_loader, device, model_id=model_id_str
+        )
 
-        # Steps 3 & 4: Causal Medoid Clustering, Parameter Folding & Zero-Shot Evaluation
+        # Steps 3 & 4: Causal Medoid Clustering & Zero-Shot Evaluation
         sub_model, sorted_kept, zs_metrics = perform_causal_restructuring(
             teacher_model=model,
             val_loader=val_loader,
@@ -107,7 +109,7 @@ def main():
             ablation_scores=scores,
             unit_map=unit_map,
             device=device,
-            model_id=f"{args.model}_{args.dataset}"
+            model_id=model_id_str
         )
 
         # Steps 5 & 6: Fine-Tuning via Knowledge Distillation (KD) + EMA
