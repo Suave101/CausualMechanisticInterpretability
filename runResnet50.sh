@@ -18,5 +18,5 @@ echo "=== CIFAR10_ROOT: $CIFAR10_ROOT ==="
 echo "=== AIP_DATASETS: $AIP_DATASETS ==="
 nvidia-smi
 
-# 3. Run the ResNet-50 10%-100% Sweep
-python experiments/experiment_resnet50_sweep.py
+# 3. Run the ResNet-50 10%-100% Sweep with uv
+uv run python experiments/experiment_resnet50_sweep.py
