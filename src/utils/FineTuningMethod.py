@@ -77,25 +77,33 @@ def fine_tune_submodel(
             running_loss += loss.item()
         print(f"  -> FT Epoch {epoch+1}/{ft_epochs} | Loss: {running_loss/len(train_loader):.4f}")
 
-    # Evaluate Fine-Tuned Model using EMA Shadow Weights
-    test_imgs, test_labels = [], []
-    for x, y in test_loader:
-        test_imgs.append(x)
-        test_labels.append(y)
-    X_test = torch.cat(test_imgs).to(device)
-    y_test = torch.cat(test_labels).to(device)
+    # Clear cached GPU memory prior to evaluation
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
 
-    with torch.no_grad():
-        teacher_preds = teacher_model(X_test).argmax(dim=1)
-
+    # Evaluate Fine-Tuned Model using EMA Shadow Weights (Batched to prevent CUDA OOM)
     ema.apply_shadow()
     sub_model.eval()
+    teacher_model.eval()
+
+    total_correct = 0
+    total_agreement = 0
+    total_samples = 0
+
     with torch.no_grad():
-        ft_logits = sub_model(X_test)
-        ft_preds = ft_logits.argmax(dim=1)
-        ft_acc = (ft_preds == y_test).float().mean().item() * 100.0
-        ft_agreement = (ft_preds == teacher_preds).float().mean().item() * 100.0
+        for bx, by in test_loader:
+            bx, by = bx.to(device), by.to(device)
+            t_preds = teacher_model(bx).argmax(dim=1)
+            ft_preds = sub_model(bx).argmax(dim=1)
+
+            total_correct += (ft_preds == by).sum().item()
+            total_agreement += (ft_preds == t_preds).sum().item()
+            total_samples += by.size(0)
+
     ema.restore()
+
+    ft_acc = (total_correct / total_samples) * 100.0 if total_samples > 0 else 0.0
+    ft_agreement = (total_agreement / total_samples) * 100.0 if total_samples > 0 else 0.0
     ft_time = time.time() - t0_ft
 
     print(f"\n--- [Step 6: Post Fine-Tuning Results ({ft_time:.1f}s)] ---")
