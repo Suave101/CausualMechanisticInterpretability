@@ -1,8 +1,8 @@
-/var/spool/slurm/d/job140499/slurm_script: 13: module: not found
+/var/spool/slurm/d/job140530/slurm_script: 13: module: not found
 === Execution Node: gpu05 ===
 === CIFAR10_ROOT:  ===
 === AIP_DATASETS: /shared/datasets ===
-Sat Oct 24 14:34:57 2026       
+Sat Oct 24 15:06:34 2026       
 +-----------------------------------------------------------------------------------------+
 | NVIDIA-SMI 580.173.02             Driver Version: 580.173.02     CUDA Version: 13.0     |
 +-----------------------------------------+------------------------+----------------------+
@@ -11,7 +11,7 @@ Sat Oct 24 14:34:57 2026
 |                                         |                        |               MIG M. |
 |=========================================+========================+======================|
 |   0  NVIDIA A100-PCIE-40GB          On  |   00000000:01:00.0 Off |                    0 |
-| N/A   33C    P0             48W /  250W |       0MiB /  40960MiB |      0%      Default |
+| N/A   46C    P0             53W /  250W |       0MiB /  40960MiB |      0%      Default |
 |                                         |                        |             Disabled |
 +-----------------------------------------+------------------------+----------------------+
 |   1  NVIDIA A100-PCIE-40GB          On  |   00000000:41:00.0 Off |                    0 |
@@ -34,57 +34,6 @@ Sat Oct 24 14:34:57 2026
 |=========================================================================================|
 |  No running processes found                                                             |
 +-----------------------------------------------------------------------------------------+
-Using CPython 3.12.3 interpreter at: /usr/bin/python3.12
-Creating virtual environment at: .venv
-Downloading matplotlib (9.4MiB)
-Downloading nvidia-cufft-cu12 (201.7MiB)
-Downloading nvidia-curand-cu12 (53.7MiB)
-Downloading nvidia-nvjitlink-cu12 (20.1MiB)
-Downloading scipy (33.7MiB)
-Downloading nvidia-cudnn-cu12 (634.0MiB)
-Downloading numpy (15.9MiB)
-Downloading kiwisolver (1.4MiB)
-Downloading nvidia-cusparse-cu12 (197.8MiB)
-Downloading setuptools (1.2MiB)
-Downloading fonttools (5.2MiB)
-Downloading nvidia-cublas-cu12 (346.6MiB)
-Downloading nvidia-nccl-cu12 (179.9MiB)
-Downloading nvidia-cusolver-cu12 (122.0MiB)
-Downloading triton (241.4MiB)
-Downloading nvidia-cuda-nvrtc-cu12 (23.5MiB)
-Downloading sympy (5.9MiB)
-Downloading nvidia-cuda-cupti-cu12 (13.2MiB)
-Downloading pandas (10.3MiB)
-Downloading scikit-learn (8.7MiB)
-Downloading nvidia-cusparselt-cu12 (143.1MiB)
-Downloading torchvision (6.9MiB)
-Downloading torch (732.8MiB)
-Downloading torchaudio (3.3MiB)
- Downloaded kiwisolver
- Downloaded torchaudio
- Downloaded torchvision
- Downloaded setuptools
- Downloaded fonttools
- Downloaded scikit-learn
- Downloaded matplotlib
- Downloaded nvidia-cuda-cupti-cu12
- Downloaded sympy
- Downloaded numpy
- Downloaded nvidia-nvjitlink-cu12
- Downloaded nvidia-cuda-nvrtc-cu12
- Downloaded pandas
- Downloaded scipy
- Downloaded nvidia-curand-cu12
- Downloaded nvidia-cusolver-cu12
- Downloaded nvidia-cusparselt-cu12
- Downloaded nvidia-nccl-cu12
- Downloaded nvidia-cusparse-cu12
- Downloaded nvidia-cufft-cu12
- Downloaded triton
- Downloaded nvidia-cublas-cu12
- Downloaded nvidia-cudnn-cu12
- Downloaded torch
-Installed 51 packages in 10.69s
 
 ===========================================================
  Testing ResNet-50 Target Neurons Kept = 10.0%
@@ -96,58 +45,30 @@ Installed 51 packages in 10.69s
 
 Device: cuda | Model: resnet50 | Dataset: cifar10 | Method: CAUSAL
 --> [Cluster Dataset] Using $AIP_DATASETS path: /shared/datasets/cifar-10
-[Cache] No cached weights found at './checkpoints/resnet50_cifar10.pth'. Training baseline to populate cache...
-Traceback (most recent call last):
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/main.py", line 149, in <module>
-    main()
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/main.py", line 80, in main
-    model = load_or_cache_model(
-            ^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/src/utils/checkpoint_utils.py", line 48, in load_or_cache_model
-    out = model(x)
-          ^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/src/models/resnet_cifar.py", line 232, in forward
-    out = self.layer1(out)
-          ^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/container.py", line 250, in forward
-    input = module(input)
-            ^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/src/models/resnet_cifar.py", line 60, in forward
-    out = F.relu(self.bn2(self.conv2(x)))
-                          ^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/conv.py", line 554, in forward
-    return self._conv_forward(input, self.weight, self.bias)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/conv.py", line 549, in _conv_forward
-    return F.conv2d(
-           ^^^^^^^^^
-RuntimeError: Given groups=1, weight of size [64, 64, 3, 3], expected input[32, 256, 32, 32] to have 64 channels, but got 256 channels instead
+[Cache] Found cached weights at './checkpoints/resnet50_cifar10.pth'. Loading model...
 
-[Error] Command failed with return code 1
+=======================================================
+ RUNNING: Causal Restructuring & Compression Framework
+=======================================================
+--> [Cache Hit] Loading cached ablation scores & fingerprints from cache/resnet50_cifar10_causal_cache.pt
+
+--- [Causal Restructuring Zero-Shot Evaluation] ---
+  -> Units Retained: 2272 / 22720 (10.0%)
+  -> Zero-Shot Accuracy: 22.86%
+  -> Zero-Shot Teacher Agreement: 1.52%
+
+--- [Step 5: Fine-Tuning via KD + EMA (5 Epochs)] ---
+  -> FT Epoch 1/5 | Loss: 0.3033
+  -> FT Epoch 2/5 | Loss: 0.2771
+  -> FT Epoch 3/5 | Loss: 0.2508
+  -> FT Epoch 4/5 | Loss: 0.2424
+  -> FT Epoch 5/5 | Loss: 0.2323
+
+--- [Step 6: Post Fine-Tuning Results (283.7s)] ---
+  -> Fine-Tuned Accuracy:  74.05%
+  -> Fine-Tuned Teacher Agreement: 93.03%
+
+[Formal Verification] Result: {'status': 'verified', 'epsilon': 0.03, 'min_margin': 0.124}
 
 ===========================================================
  Running: /home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/bin/python main.py --method deepabstract --model resnet50 --dataset cifar10 --batch_size 32 --reduction_rate 0.9000 --ft_epochs 5
@@ -155,58 +76,29 @@ RuntimeError: Given groups=1, weight of size [64, 64, 3, 3], expected input[32, 
 
 Device: cuda | Model: resnet50 | Dataset: cifar10 | Method: DEEPABSTRACT
 --> [Cluster Dataset] Using $AIP_DATASETS path: /shared/datasets/cifar-10
-[Cache] No cached weights found at './checkpoints/resnet50_cifar10.pth'. Training baseline to populate cache...
-Traceback (most recent call last):
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/main.py", line 149, in <module>
-    main()
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/main.py", line 80, in main
-    model = load_or_cache_model(
-            ^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/src/utils/checkpoint_utils.py", line 48, in load_or_cache_model
-    out = model(x)
-          ^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/src/models/resnet_cifar.py", line 232, in forward
-    out = self.layer1(out)
-          ^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/container.py", line 250, in forward
-    input = module(input)
-            ^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/src/models/resnet_cifar.py", line 60, in forward
-    out = F.relu(self.bn2(self.conv2(x)))
-                          ^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/conv.py", line 554, in forward
-    return self._conv_forward(input, self.weight, self.bias)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/conv.py", line 549, in _conv_forward
-    return F.conv2d(
-           ^^^^^^^^^
-RuntimeError: Given groups=1, weight of size [64, 64, 3, 3], expected input[32, 256, 32, 32] to have 64 channels, but got 256 channels instead
+[Cache] Found cached weights at './checkpoints/resnet50_cifar10.pth'. Loading model...
 
-[Error] Command failed with return code 1
+=======================================================
+ RUNNING: DeepAbstract Baseline (Ashok et al., ATVA 2020)
+=======================================================
+
+--- [DeepAbstract Baseline Zero-Shot (Ashok et al. 2020)] ---
+  -> Units Retained: 2273 / 22720 (10.0%)
+  -> Zero-Shot Accuracy: 15.25%
+  -> Zero-Shot Teacher Agreement: 15.27%
+
+--- [Step 5: Fine-Tuning via KD + EMA (5 Epochs)] ---
+  -> FT Epoch 1/5 | Loss: 0.3101
+  -> FT Epoch 2/5 | Loss: 0.2841
+  -> FT Epoch 3/5 | Loss: 0.2548
+  -> FT Epoch 4/5 | Loss: 0.2450
+  -> FT Epoch 5/5 | Loss: 0.2310
+
+--- [Step 6: Post Fine-Tuning Results (297.6s)] ---
+  -> Fine-Tuned Accuracy:  75.28%
+  -> Fine-Tuned Teacher Agreement: 92.57%
+
+[Formal Verification] Result: {'status': 'verified', 'epsilon': 0.03, 'min_margin': 0.124}
 
 ===========================================================
  Testing ResNet-50 Target Neurons Kept = 30.0%
@@ -218,58 +110,30 @@ RuntimeError: Given groups=1, weight of size [64, 64, 3, 3], expected input[32, 
 
 Device: cuda | Model: resnet50 | Dataset: cifar10 | Method: CAUSAL
 --> [Cluster Dataset] Using $AIP_DATASETS path: /shared/datasets/cifar-10
-[Cache] No cached weights found at './checkpoints/resnet50_cifar10.pth'. Training baseline to populate cache...
-Traceback (most recent call last):
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/main.py", line 149, in <module>
-    main()
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/main.py", line 80, in main
-    model = load_or_cache_model(
-            ^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/src/utils/checkpoint_utils.py", line 48, in load_or_cache_model
-    out = model(x)
-          ^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/src/models/resnet_cifar.py", line 232, in forward
-    out = self.layer1(out)
-          ^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/container.py", line 250, in forward
-    input = module(input)
-            ^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/src/models/resnet_cifar.py", line 60, in forward
-    out = F.relu(self.bn2(self.conv2(x)))
-                          ^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/conv.py", line 554, in forward
-    return self._conv_forward(input, self.weight, self.bias)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/conv.py", line 549, in _conv_forward
-    return F.conv2d(
-           ^^^^^^^^^
-RuntimeError: Given groups=1, weight of size [64, 64, 3, 3], expected input[32, 256, 32, 32] to have 64 channels, but got 256 channels instead
+[Cache] Found cached weights at './checkpoints/resnet50_cifar10.pth'. Loading model...
 
-[Error] Command failed with return code 1
+=======================================================
+ RUNNING: Causal Restructuring & Compression Framework
+=======================================================
+--> [Cache Hit] Loading cached ablation scores & fingerprints from cache/resnet50_cifar10_causal_cache.pt
+
+--- [Causal Restructuring Zero-Shot Evaluation] ---
+  -> Units Retained: 6820 / 22720 (30.0%)
+  -> Zero-Shot Accuracy: 40.04%
+  -> Zero-Shot Teacher Agreement: 6.62%
+
+--- [Step 5: Fine-Tuning via KD + EMA (5 Epochs)] ---
+  -> FT Epoch 1/5 | Loss: 0.3036
+  -> FT Epoch 2/5 | Loss: 0.2814
+  -> FT Epoch 3/5 | Loss: 0.2506
+  -> FT Epoch 4/5 | Loss: 0.2412
+  -> FT Epoch 5/5 | Loss: 0.2525
+
+--- [Step 6: Post Fine-Tuning Results (296.4s)] ---
+  -> Fine-Tuned Accuracy:  74.71%
+  -> Fine-Tuned Teacher Agreement: 92.39%
+
+[Formal Verification] Result: {'status': 'verified', 'epsilon': 0.03, 'min_margin': 0.124}
 
 ===========================================================
  Running: /home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/bin/python main.py --method deepabstract --model resnet50 --dataset cifar10 --batch_size 32 --reduction_rate 0.7000 --ft_epochs 5
@@ -277,58 +141,29 @@ RuntimeError: Given groups=1, weight of size [64, 64, 3, 3], expected input[32, 
 
 Device: cuda | Model: resnet50 | Dataset: cifar10 | Method: DEEPABSTRACT
 --> [Cluster Dataset] Using $AIP_DATASETS path: /shared/datasets/cifar-10
-[Cache] No cached weights found at './checkpoints/resnet50_cifar10.pth'. Training baseline to populate cache...
-Traceback (most recent call last):
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/main.py", line 149, in <module>
-    main()
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/main.py", line 80, in main
-    model = load_or_cache_model(
-            ^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/src/utils/checkpoint_utils.py", line 48, in load_or_cache_model
-    out = model(x)
-          ^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/src/models/resnet_cifar.py", line 232, in forward
-    out = self.layer1(out)
-          ^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/container.py", line 250, in forward
-    input = module(input)
-            ^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/src/models/resnet_cifar.py", line 60, in forward
-    out = F.relu(self.bn2(self.conv2(x)))
-                          ^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/conv.py", line 554, in forward
-    return self._conv_forward(input, self.weight, self.bias)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/conv.py", line 549, in _conv_forward
-    return F.conv2d(
-           ^^^^^^^^^
-RuntimeError: Given groups=1, weight of size [64, 64, 3, 3], expected input[32, 256, 32, 32] to have 64 channels, but got 256 channels instead
+[Cache] Found cached weights at './checkpoints/resnet50_cifar10.pth'. Loading model...
 
-[Error] Command failed with return code 1
+=======================================================
+ RUNNING: DeepAbstract Baseline (Ashok et al., ATVA 2020)
+=======================================================
+
+--- [DeepAbstract Baseline Zero-Shot (Ashok et al. 2020)] ---
+  -> Units Retained: 6816 / 22720 (30.0%)
+  -> Zero-Shot Accuracy: 19.74%
+  -> Zero-Shot Teacher Agreement: 18.72%
+
+--- [Step 5: Fine-Tuning via KD + EMA (5 Epochs)] ---
+  -> FT Epoch 1/5 | Loss: 0.3164
+  -> FT Epoch 2/5 | Loss: 0.2700
+  -> FT Epoch 3/5 | Loss: 0.2631
+  -> FT Epoch 4/5 | Loss: 0.2480
+  -> FT Epoch 5/5 | Loss: 0.2261
+
+--- [Step 6: Post Fine-Tuning Results (297.9s)] ---
+  -> Fine-Tuned Accuracy:  74.98%
+  -> Fine-Tuned Teacher Agreement: 92.49%
+
+[Formal Verification] Result: {'status': 'verified', 'epsilon': 0.03, 'min_margin': 0.124}
 
 ===========================================================
  Testing ResNet-50 Target Neurons Kept = 50.0%
@@ -340,58 +175,30 @@ RuntimeError: Given groups=1, weight of size [64, 64, 3, 3], expected input[32, 
 
 Device: cuda | Model: resnet50 | Dataset: cifar10 | Method: CAUSAL
 --> [Cluster Dataset] Using $AIP_DATASETS path: /shared/datasets/cifar-10
-[Cache] No cached weights found at './checkpoints/resnet50_cifar10.pth'. Training baseline to populate cache...
-Traceback (most recent call last):
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/main.py", line 149, in <module>
-    main()
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/main.py", line 80, in main
-    model = load_or_cache_model(
-            ^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/src/utils/checkpoint_utils.py", line 48, in load_or_cache_model
-    out = model(x)
-          ^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/src/models/resnet_cifar.py", line 232, in forward
-    out = self.layer1(out)
-          ^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/container.py", line 250, in forward
-    input = module(input)
-            ^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/src/models/resnet_cifar.py", line 60, in forward
-    out = F.relu(self.bn2(self.conv2(x)))
-                          ^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/conv.py", line 554, in forward
-    return self._conv_forward(input, self.weight, self.bias)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/conv.py", line 549, in _conv_forward
-    return F.conv2d(
-           ^^^^^^^^^
-RuntimeError: Given groups=1, weight of size [64, 64, 3, 3], expected input[32, 256, 32, 32] to have 64 channels, but got 256 channels instead
+[Cache] Found cached weights at './checkpoints/resnet50_cifar10.pth'. Loading model...
 
-[Error] Command failed with return code 1
+=======================================================
+ RUNNING: Causal Restructuring & Compression Framework
+=======================================================
+--> [Cache Hit] Loading cached ablation scores & fingerprints from cache/resnet50_cifar10_causal_cache.pt
+
+--- [Causal Restructuring Zero-Shot Evaluation] ---
+  -> Units Retained: 11360 / 22720 (50.0%)
+  -> Zero-Shot Accuracy: 63.17%
+  -> Zero-Shot Teacher Agreement: 12.72%
+
+--- [Step 5: Fine-Tuning via KD + EMA (5 Epochs)] ---
+  -> FT Epoch 1/5 | Loss: 0.3133
+  -> FT Epoch 2/5 | Loss: 0.2828
+  -> FT Epoch 3/5 | Loss: 0.2552
+  -> FT Epoch 4/5 | Loss: 0.2422
+  -> FT Epoch 5/5 | Loss: 0.2420
+
+--- [Step 6: Post Fine-Tuning Results (294.5s)] ---
+  -> Fine-Tuned Accuracy:  74.77%
+  -> Fine-Tuned Teacher Agreement: 91.62%
+
+[Formal Verification] Result: {'status': 'verified', 'epsilon': 0.03, 'min_margin': 0.124}
 
 ===========================================================
  Running: /home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/bin/python main.py --method deepabstract --model resnet50 --dataset cifar10 --batch_size 32 --reduction_rate 0.5000 --ft_epochs 5
@@ -399,58 +206,29 @@ RuntimeError: Given groups=1, weight of size [64, 64, 3, 3], expected input[32, 
 
 Device: cuda | Model: resnet50 | Dataset: cifar10 | Method: DEEPABSTRACT
 --> [Cluster Dataset] Using $AIP_DATASETS path: /shared/datasets/cifar-10
-[Cache] No cached weights found at './checkpoints/resnet50_cifar10.pth'. Training baseline to populate cache...
-Traceback (most recent call last):
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/main.py", line 149, in <module>
-    main()
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/main.py", line 80, in main
-    model = load_or_cache_model(
-            ^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/src/utils/checkpoint_utils.py", line 48, in load_or_cache_model
-    out = model(x)
-          ^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/src/models/resnet_cifar.py", line 232, in forward
-    out = self.layer1(out)
-          ^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/container.py", line 250, in forward
-    input = module(input)
-            ^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/src/models/resnet_cifar.py", line 60, in forward
-    out = F.relu(self.bn2(self.conv2(x)))
-                          ^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/conv.py", line 554, in forward
-    return self._conv_forward(input, self.weight, self.bias)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/conv.py", line 549, in _conv_forward
-    return F.conv2d(
-           ^^^^^^^^^
-RuntimeError: Given groups=1, weight of size [64, 64, 3, 3], expected input[32, 256, 32, 32] to have 64 channels, but got 256 channels instead
+[Cache] Found cached weights at './checkpoints/resnet50_cifar10.pth'. Loading model...
 
-[Error] Command failed with return code 1
+=======================================================
+ RUNNING: DeepAbstract Baseline (Ashok et al., ATVA 2020)
+=======================================================
+
+--- [DeepAbstract Baseline Zero-Shot (Ashok et al. 2020)] ---
+  -> Units Retained: 11360 / 22720 (50.0%)
+  -> Zero-Shot Accuracy: 25.77%
+  -> Zero-Shot Teacher Agreement: 23.71%
+
+--- [Step 5: Fine-Tuning via KD + EMA (5 Epochs)] ---
+  -> FT Epoch 1/5 | Loss: 0.3162
+  -> FT Epoch 2/5 | Loss: 0.2839
+  -> FT Epoch 3/5 | Loss: 0.2576
+  -> FT Epoch 4/5 | Loss: 0.2401
+  -> FT Epoch 5/5 | Loss: 0.2430
+
+--- [Step 6: Post Fine-Tuning Results (300.6s)] ---
+  -> Fine-Tuned Accuracy:  74.45%
+  -> Fine-Tuned Teacher Agreement: 92.82%
+
+[Formal Verification] Result: {'status': 'verified', 'epsilon': 0.03, 'min_margin': 0.124}
 
 ===========================================================
  Testing ResNet-50 Target Neurons Kept = 80.0%
@@ -462,58 +240,30 @@ RuntimeError: Given groups=1, weight of size [64, 64, 3, 3], expected input[32, 
 
 Device: cuda | Model: resnet50 | Dataset: cifar10 | Method: CAUSAL
 --> [Cluster Dataset] Using $AIP_DATASETS path: /shared/datasets/cifar-10
-[Cache] No cached weights found at './checkpoints/resnet50_cifar10.pth'. Training baseline to populate cache...
-Traceback (most recent call last):
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/main.py", line 149, in <module>
-    main()
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/main.py", line 80, in main
-    model = load_or_cache_model(
-            ^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/src/utils/checkpoint_utils.py", line 48, in load_or_cache_model
-    out = model(x)
-          ^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/src/models/resnet_cifar.py", line 232, in forward
-    out = self.layer1(out)
-          ^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/container.py", line 250, in forward
-    input = module(input)
-            ^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/src/models/resnet_cifar.py", line 60, in forward
-    out = F.relu(self.bn2(self.conv2(x)))
-                          ^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/conv.py", line 554, in forward
-    return self._conv_forward(input, self.weight, self.bias)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/conv.py", line 549, in _conv_forward
-    return F.conv2d(
-           ^^^^^^^^^
-RuntimeError: Given groups=1, weight of size [64, 64, 3, 3], expected input[32, 256, 32, 32] to have 64 channels, but got 256 channels instead
+[Cache] Found cached weights at './checkpoints/resnet50_cifar10.pth'. Loading model...
 
-[Error] Command failed with return code 1
+=======================================================
+ RUNNING: Causal Restructuring & Compression Framework
+=======================================================
+--> [Cache Hit] Loading cached ablation scores & fingerprints from cache/resnet50_cifar10_causal_cache.pt
+
+--- [Causal Restructuring Zero-Shot Evaluation] ---
+  -> Units Retained: 18171 / 22720 (80.0%)
+  -> Zero-Shot Accuracy: 71.23%
+  -> Zero-Shot Teacher Agreement: 33.75%
+
+--- [Step 5: Fine-Tuning via KD + EMA (5 Epochs)] ---
+  -> FT Epoch 1/5 | Loss: 0.3283
+  -> FT Epoch 2/5 | Loss: 0.2727
+  -> FT Epoch 3/5 | Loss: 0.2525
+  -> FT Epoch 4/5 | Loss: 0.2509
+  -> FT Epoch 5/5 | Loss: 0.2331
+
+--- [Step 6: Post Fine-Tuning Results (295.7s)] ---
+  -> Fine-Tuned Accuracy:  73.16%
+  -> Fine-Tuned Teacher Agreement: 91.23%
+
+[Formal Verification] Result: {'status': 'verified', 'epsilon': 0.03, 'min_margin': 0.124}
 
 ===========================================================
  Running: /home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/bin/python main.py --method deepabstract --model resnet50 --dataset cifar10 --batch_size 32 --reduction_rate 0.2000 --ft_epochs 5
@@ -521,58 +271,29 @@ RuntimeError: Given groups=1, weight of size [64, 64, 3, 3], expected input[32, 
 
 Device: cuda | Model: resnet50 | Dataset: cifar10 | Method: DEEPABSTRACT
 --> [Cluster Dataset] Using $AIP_DATASETS path: /shared/datasets/cifar-10
-[Cache] No cached weights found at './checkpoints/resnet50_cifar10.pth'. Training baseline to populate cache...
-Traceback (most recent call last):
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/main.py", line 149, in <module>
-    main()
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/main.py", line 80, in main
-    model = load_or_cache_model(
-            ^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/src/utils/checkpoint_utils.py", line 48, in load_or_cache_model
-    out = model(x)
-          ^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/src/models/resnet_cifar.py", line 232, in forward
-    out = self.layer1(out)
-          ^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/container.py", line 250, in forward
-    input = module(input)
-            ^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/src/models/resnet_cifar.py", line 60, in forward
-    out = F.relu(self.bn2(self.conv2(x)))
-                          ^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/conv.py", line 554, in forward
-    return self._conv_forward(input, self.weight, self.bias)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/conv.py", line 549, in _conv_forward
-    return F.conv2d(
-           ^^^^^^^^^
-RuntimeError: Given groups=1, weight of size [64, 64, 3, 3], expected input[32, 256, 32, 32] to have 64 channels, but got 256 channels instead
+[Cache] Found cached weights at './checkpoints/resnet50_cifar10.pth'. Loading model...
 
-[Error] Command failed with return code 1
+=======================================================
+ RUNNING: DeepAbstract Baseline (Ashok et al., ATVA 2020)
+=======================================================
+
+--- [DeepAbstract Baseline Zero-Shot (Ashok et al. 2020)] ---
+  -> Units Retained: 18176 / 22720 (80.0%)
+  -> Zero-Shot Accuracy: 53.56%
+  -> Zero-Shot Teacher Agreement: 60.97%
+
+--- [Step 5: Fine-Tuning via KD + EMA (5 Epochs)] ---
+  -> FT Epoch 1/5 | Loss: 0.3139
+  -> FT Epoch 2/5 | Loss: 0.2782
+  -> FT Epoch 3/5 | Loss: 0.2529
+  -> FT Epoch 4/5 | Loss: 0.2414
+  -> FT Epoch 5/5 | Loss: 0.2281
+
+--- [Step 6: Post Fine-Tuning Results (292.7s)] ---
+  -> Fine-Tuned Accuracy:  73.86%
+  -> Fine-Tuned Teacher Agreement: 92.24%
+
+[Formal Verification] Result: {'status': 'verified', 'epsilon': 0.03, 'min_margin': 0.124}
 
 ===========================================================
  Testing ResNet-50 Target Neurons Kept = 100.0%
@@ -584,58 +305,30 @@ RuntimeError: Given groups=1, weight of size [64, 64, 3, 3], expected input[32, 
 
 Device: cuda | Model: resnet50 | Dataset: cifar10 | Method: CAUSAL
 --> [Cluster Dataset] Using $AIP_DATASETS path: /shared/datasets/cifar-10
-[Cache] No cached weights found at './checkpoints/resnet50_cifar10.pth'. Training baseline to populate cache...
-Traceback (most recent call last):
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/main.py", line 149, in <module>
-    main()
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/main.py", line 80, in main
-    model = load_or_cache_model(
-            ^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/src/utils/checkpoint_utils.py", line 48, in load_or_cache_model
-    out = model(x)
-          ^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/src/models/resnet_cifar.py", line 232, in forward
-    out = self.layer1(out)
-          ^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/container.py", line 250, in forward
-    input = module(input)
-            ^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/src/models/resnet_cifar.py", line 60, in forward
-    out = F.relu(self.bn2(self.conv2(x)))
-                          ^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/conv.py", line 554, in forward
-    return self._conv_forward(input, self.weight, self.bias)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/conv.py", line 549, in _conv_forward
-    return F.conv2d(
-           ^^^^^^^^^
-RuntimeError: Given groups=1, weight of size [64, 64, 3, 3], expected input[32, 256, 32, 32] to have 64 channels, but got 256 channels instead
+[Cache] Found cached weights at './checkpoints/resnet50_cifar10.pth'. Loading model...
 
-[Error] Command failed with return code 1
+=======================================================
+ RUNNING: Causal Restructuring & Compression Framework
+=======================================================
+--> [Cache Hit] Loading cached ablation scores & fingerprints from cache/resnet50_cifar10_causal_cache.pt
+
+--- [Causal Restructuring Zero-Shot Evaluation] ---
+  -> Units Retained: 22720 / 22720 (100.0%)
+  -> Zero-Shot Accuracy: 73.82%
+  -> Zero-Shot Teacher Agreement: 100.00%
+
+--- [Step 5: Fine-Tuning via KD + EMA (5 Epochs)] ---
+  -> FT Epoch 1/5 | Loss: 0.3042
+  -> FT Epoch 2/5 | Loss: 0.2715
+  -> FT Epoch 3/5 | Loss: 0.2694
+  -> FT Epoch 4/5 | Loss: 0.2532
+  -> FT Epoch 5/5 | Loss: 0.2314
+
+--- [Step 6: Post Fine-Tuning Results (299.3s)] ---
+  -> Fine-Tuned Accuracy:  74.61%
+  -> Fine-Tuned Teacher Agreement: 93.07%
+
+[Formal Verification] Result: {'status': 'verified', 'epsilon': 0.03, 'min_margin': 0.124}
 
 ===========================================================
  Running: /home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/bin/python main.py --method deepabstract --model resnet50 --dataset cifar10 --batch_size 32 --reduction_rate 0.0000 --ft_epochs 5
@@ -643,58 +336,29 @@ RuntimeError: Given groups=1, weight of size [64, 64, 3, 3], expected input[32, 
 
 Device: cuda | Model: resnet50 | Dataset: cifar10 | Method: DEEPABSTRACT
 --> [Cluster Dataset] Using $AIP_DATASETS path: /shared/datasets/cifar-10
-[Cache] No cached weights found at './checkpoints/resnet50_cifar10.pth'. Training baseline to populate cache...
-Traceback (most recent call last):
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/main.py", line 149, in <module>
-    main()
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/main.py", line 80, in main
-    model = load_or_cache_model(
-            ^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/src/utils/checkpoint_utils.py", line 48, in load_or_cache_model
-    out = model(x)
-          ^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/src/models/resnet_cifar.py", line 232, in forward
-    out = self.layer1(out)
-          ^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/container.py", line 250, in forward
-    input = module(input)
-            ^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/src/models/resnet_cifar.py", line 60, in forward
-    out = F.relu(self.bn2(self.conv2(x)))
-                          ^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/conv.py", line 554, in forward
-    return self._conv_forward(input, self.weight, self.bias)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home1/adoyle2025/suave101/CausualMechanisticInterpretability/.venv/lib/python3.12/site-packages/torch/nn/modules/conv.py", line 549, in _conv_forward
-    return F.conv2d(
-           ^^^^^^^^^
-RuntimeError: Given groups=1, weight of size [64, 64, 3, 3], expected input[32, 256, 32, 32] to have 64 channels, but got 256 channels instead
+[Cache] Found cached weights at './checkpoints/resnet50_cifar10.pth'. Loading model...
 
-[Error] Command failed with return code 1
+=======================================================
+ RUNNING: DeepAbstract Baseline (Ashok et al., ATVA 2020)
+=======================================================
+
+--- [DeepAbstract Baseline Zero-Shot (Ashok et al. 2020)] ---
+  -> Units Retained: 22720 / 22720 (100.0%)
+  -> Zero-Shot Accuracy: 73.64%
+  -> Zero-Shot Teacher Agreement: 88.94%
+
+--- [Step 5: Fine-Tuning via KD + EMA (5 Epochs)] ---
+  -> FT Epoch 1/5 | Loss: 0.3199
+  -> FT Epoch 2/5 | Loss: 0.2679
+  -> FT Epoch 3/5 | Loss: 0.2542
+  -> FT Epoch 4/5 | Loss: 0.2456
+  -> FT Epoch 5/5 | Loss: 0.2405
+
+--- [Step 6: Post Fine-Tuning Results (296.8s)] ---
+  -> Fine-Tuned Accuracy:  73.59%
+  -> Fine-Tuned Teacher Agreement: 91.72%
+
+[Formal Verification] Result: {'status': 'verified', 'epsilon': 0.03, 'min_margin': 0.124}
 
 --> Saved Zero-Shot figure to results/resnet50_zeroshot_sweep.png
 --> Saved Fine-Tuned figure to results/resnet50_finetuned_sweep.png
