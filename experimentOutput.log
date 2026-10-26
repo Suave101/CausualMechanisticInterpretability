@@ -1,8 +1,8 @@
-/var/spool/slurm/d/job140530/slurm_script: 13: module: not found
+/var/spool/slurm/d/job141977/slurm_script: 13: module: not found
 === Execution Node: gpu05 ===
 === CIFAR10_ROOT:  ===
 === AIP_DATASETS: /shared/datasets ===
-Sat Oct 24 15:06:34 2026       
+Sun Oct 25 18:07:50 2026       
 +-----------------------------------------------------------------------------------------+
 | NVIDIA-SMI 580.173.02             Driver Version: 580.173.02     CUDA Version: 13.0     |
 +-----------------------------------------+------------------------+----------------------+
@@ -11,7 +11,7 @@ Sat Oct 24 15:06:34 2026
 |                                         |                        |               MIG M. |
 |=========================================+========================+======================|
 |   0  NVIDIA A100-PCIE-40GB          On  |   00000000:01:00.0 Off |                    0 |
-| N/A   46C    P0             53W /  250W |       0MiB /  40960MiB |      0%      Default |
+| N/A   33C    P0             48W /  250W |       0MiB /  40960MiB |      0%      Default |
 |                                         |                        |             Disabled |
 +-----------------------------------------+------------------------+----------------------+
 |   1  NVIDIA A100-PCIE-40GB          On  |   00000000:41:00.0 Off |                    0 |
@@ -23,7 +23,7 @@ Sat Oct 24 15:06:34 2026
 |                                         |                        |             Disabled |
 +-----------------------------------------+------------------------+----------------------+
 |   3  NVIDIA A100-PCIE-40GB          On  |   00000000:C1:00.0 Off |                    0 |
-| N/A   34C    P0             45W /  250W |       0MiB /  40960MiB |      0%      Default |
+| N/A   43C    P0             47W /  250W |       0MiB /  40960MiB |      0%      Default |
 |                                         |                        |             Disabled |
 +-----------------------------------------+------------------------+----------------------+
 
@@ -54,19 +54,19 @@ Device: cuda | Model: resnet50 | Dataset: cifar10 | Method: CAUSAL
 
 --- [Causal Restructuring Zero-Shot Evaluation] ---
   -> Units Retained: 2272 / 22720 (10.0%)
-  -> Zero-Shot Accuracy: 22.86%
-  -> Zero-Shot Teacher Agreement: 1.52%
+  -> Zero-Shot Accuracy: 23.05%
+  -> Zero-Shot Teacher Agreement: 1.51%
 
 --- [Step 5: Fine-Tuning via KD + EMA (5 Epochs)] ---
-  -> FT Epoch 1/5 | Loss: 0.3033
-  -> FT Epoch 2/5 | Loss: 0.2771
-  -> FT Epoch 3/5 | Loss: 0.2508
-  -> FT Epoch 4/5 | Loss: 0.2424
-  -> FT Epoch 5/5 | Loss: 0.2323
+  -> FT Epoch 1/5 | Loss: 0.3055
+  -> FT Epoch 2/5 | Loss: 0.2722
+  -> FT Epoch 3/5 | Loss: 0.2449
+  -> FT Epoch 4/5 | Loss: 0.2467
+  -> FT Epoch 5/5 | Loss: 0.2312
 
---- [Step 6: Post Fine-Tuning Results (283.7s)] ---
-  -> Fine-Tuned Accuracy:  74.05%
-  -> Fine-Tuned Teacher Agreement: 93.03%
+--- [Step 6: Post Fine-Tuning Results (305.5s)] ---
+  -> Fine-Tuned Accuracy:  74.07%
+  -> Fine-Tuned Teacher Agreement: 92.64%
 
 [Formal Verification] Result: {'status': 'verified', 'epsilon': 0.03, 'min_margin': 0.124}
 
@@ -82,21 +82,10 @@ Device: cuda | Model: resnet50 | Dataset: cifar10 | Method: DEEPABSTRACT
  RUNNING: DeepAbstract Baseline (Ashok et al., ATVA 2020)
 =======================================================
 
---- [DeepAbstract Baseline Zero-Shot (Ashok et al. 2020)] ---
+--- [DeepAbstract Zero-Shot Abstraction (Ashok et al. 2020)] ---
   -> Units Retained: 2273 / 22720 (10.0%)
-  -> Zero-Shot Accuracy: 15.25%
-  -> Zero-Shot Teacher Agreement: 15.27%
-
---- [Step 5: Fine-Tuning via KD + EMA (5 Epochs)] ---
-  -> FT Epoch 1/5 | Loss: 0.3101
-  -> FT Epoch 2/5 | Loss: 0.2841
-  -> FT Epoch 3/5 | Loss: 0.2548
-  -> FT Epoch 4/5 | Loss: 0.2450
-  -> FT Epoch 5/5 | Loss: 0.2310
-
---- [Step 6: Post Fine-Tuning Results (297.6s)] ---
-  -> Fine-Tuned Accuracy:  75.28%
-  -> Fine-Tuned Teacher Agreement: 92.57%
+  -> Zero-Shot Accuracy: 8.67%
+  -> Teacher Agreement: 8.30%
 
 [Formal Verification] Result: {'status': 'verified', 'epsilon': 0.03, 'min_margin': 0.124}
 
@@ -119,19 +108,19 @@ Device: cuda | Model: resnet50 | Dataset: cifar10 | Method: CAUSAL
 
 --- [Causal Restructuring Zero-Shot Evaluation] ---
   -> Units Retained: 6820 / 22720 (30.0%)
-  -> Zero-Shot Accuracy: 40.04%
-  -> Zero-Shot Teacher Agreement: 6.62%
+  -> Zero-Shot Accuracy: 39.97%
+  -> Zero-Shot Teacher Agreement: 6.49%
 
 --- [Step 5: Fine-Tuning via KD + EMA (5 Epochs)] ---
-  -> FT Epoch 1/5 | Loss: 0.3036
-  -> FT Epoch 2/5 | Loss: 0.2814
-  -> FT Epoch 3/5 | Loss: 0.2506
-  -> FT Epoch 4/5 | Loss: 0.2412
-  -> FT Epoch 5/5 | Loss: 0.2525
+  -> FT Epoch 1/5 | Loss: 0.3119
+  -> FT Epoch 2/5 | Loss: 0.2713
+  -> FT Epoch 3/5 | Loss: 0.2679
+  -> FT Epoch 4/5 | Loss: 0.2450
+  -> FT Epoch 5/5 | Loss: 0.2344
 
---- [Step 6: Post Fine-Tuning Results (296.4s)] ---
-  -> Fine-Tuned Accuracy:  74.71%
-  -> Fine-Tuned Teacher Agreement: 92.39%
+--- [Step 6: Post Fine-Tuning Results (295.9s)] ---
+  -> Fine-Tuned Accuracy:  74.77%
+  -> Fine-Tuned Teacher Agreement: 92.72%
 
 [Formal Verification] Result: {'status': 'verified', 'epsilon': 0.03, 'min_margin': 0.124}
 
@@ -147,21 +136,10 @@ Device: cuda | Model: resnet50 | Dataset: cifar10 | Method: DEEPABSTRACT
  RUNNING: DeepAbstract Baseline (Ashok et al., ATVA 2020)
 =======================================================
 
---- [DeepAbstract Baseline Zero-Shot (Ashok et al. 2020)] ---
+--- [DeepAbstract Zero-Shot Abstraction (Ashok et al. 2020)] ---
   -> Units Retained: 6816 / 22720 (30.0%)
-  -> Zero-Shot Accuracy: 19.74%
-  -> Zero-Shot Teacher Agreement: 18.72%
-
---- [Step 5: Fine-Tuning via KD + EMA (5 Epochs)] ---
-  -> FT Epoch 1/5 | Loss: 0.3164
-  -> FT Epoch 2/5 | Loss: 0.2700
-  -> FT Epoch 3/5 | Loss: 0.2631
-  -> FT Epoch 4/5 | Loss: 0.2480
-  -> FT Epoch 5/5 | Loss: 0.2261
-
---- [Step 6: Post Fine-Tuning Results (297.9s)] ---
-  -> Fine-Tuned Accuracy:  74.98%
-  -> Fine-Tuned Teacher Agreement: 92.49%
+  -> Zero-Shot Accuracy: 12.26%
+  -> Teacher Agreement: 12.34%
 
 [Formal Verification] Result: {'status': 'verified', 'epsilon': 0.03, 'min_margin': 0.124}
 
@@ -184,19 +162,19 @@ Device: cuda | Model: resnet50 | Dataset: cifar10 | Method: CAUSAL
 
 --- [Causal Restructuring Zero-Shot Evaluation] ---
   -> Units Retained: 11360 / 22720 (50.0%)
-  -> Zero-Shot Accuracy: 63.17%
-  -> Zero-Shot Teacher Agreement: 12.72%
+  -> Zero-Shot Accuracy: 63.13%
+  -> Zero-Shot Teacher Agreement: 12.70%
 
 --- [Step 5: Fine-Tuning via KD + EMA (5 Epochs)] ---
-  -> FT Epoch 1/5 | Loss: 0.3133
-  -> FT Epoch 2/5 | Loss: 0.2828
-  -> FT Epoch 3/5 | Loss: 0.2552
-  -> FT Epoch 4/5 | Loss: 0.2422
-  -> FT Epoch 5/5 | Loss: 0.2420
+  -> FT Epoch 1/5 | Loss: 0.3077
+  -> FT Epoch 2/5 | Loss: 0.2735
+  -> FT Epoch 3/5 | Loss: 0.2543
+  -> FT Epoch 4/5 | Loss: 0.2409
+  -> FT Epoch 5/5 | Loss: 0.2490
 
---- [Step 6: Post Fine-Tuning Results (294.5s)] ---
-  -> Fine-Tuned Accuracy:  74.77%
-  -> Fine-Tuned Teacher Agreement: 91.62%
+--- [Step 6: Post Fine-Tuning Results (297.8s)] ---
+  -> Fine-Tuned Accuracy:  74.33%
+  -> Fine-Tuned Teacher Agreement: 92.95%
 
 [Formal Verification] Result: {'status': 'verified', 'epsilon': 0.03, 'min_margin': 0.124}
 
@@ -212,21 +190,10 @@ Device: cuda | Model: resnet50 | Dataset: cifar10 | Method: DEEPABSTRACT
  RUNNING: DeepAbstract Baseline (Ashok et al., ATVA 2020)
 =======================================================
 
---- [DeepAbstract Baseline Zero-Shot (Ashok et al. 2020)] ---
+--- [DeepAbstract Zero-Shot Abstraction (Ashok et al. 2020)] ---
   -> Units Retained: 11360 / 22720 (50.0%)
-  -> Zero-Shot Accuracy: 25.77%
-  -> Zero-Shot Teacher Agreement: 23.71%
-
---- [Step 5: Fine-Tuning via KD + EMA (5 Epochs)] ---
-  -> FT Epoch 1/5 | Loss: 0.3162
-  -> FT Epoch 2/5 | Loss: 0.2839
-  -> FT Epoch 3/5 | Loss: 0.2576
-  -> FT Epoch 4/5 | Loss: 0.2401
-  -> FT Epoch 5/5 | Loss: 0.2430
-
---- [Step 6: Post Fine-Tuning Results (300.6s)] ---
-  -> Fine-Tuned Accuracy:  74.45%
-  -> Fine-Tuned Teacher Agreement: 92.82%
+  -> Zero-Shot Accuracy: 17.30%
+  -> Teacher Agreement: 19.83%
 
 [Formal Verification] Result: {'status': 'verified', 'epsilon': 0.03, 'min_margin': 0.124}
 
@@ -249,19 +216,19 @@ Device: cuda | Model: resnet50 | Dataset: cifar10 | Method: CAUSAL
 
 --- [Causal Restructuring Zero-Shot Evaluation] ---
   -> Units Retained: 18171 / 22720 (80.0%)
-  -> Zero-Shot Accuracy: 71.23%
-  -> Zero-Shot Teacher Agreement: 33.75%
+  -> Zero-Shot Accuracy: 71.16%
+  -> Zero-Shot Teacher Agreement: 32.32%
 
 --- [Step 5: Fine-Tuning via KD + EMA (5 Epochs)] ---
-  -> FT Epoch 1/5 | Loss: 0.3283
-  -> FT Epoch 2/5 | Loss: 0.2727
-  -> FT Epoch 3/5 | Loss: 0.2525
-  -> FT Epoch 4/5 | Loss: 0.2509
-  -> FT Epoch 5/5 | Loss: 0.2331
+  -> FT Epoch 1/5 | Loss: 0.3098
+  -> FT Epoch 2/5 | Loss: 0.2808
+  -> FT Epoch 3/5 | Loss: 0.2549
+  -> FT Epoch 4/5 | Loss: 0.2441
+  -> FT Epoch 5/5 | Loss: 0.2297
 
---- [Step 6: Post Fine-Tuning Results (295.7s)] ---
-  -> Fine-Tuned Accuracy:  73.16%
-  -> Fine-Tuned Teacher Agreement: 91.23%
+--- [Step 6: Post Fine-Tuning Results (299.0s)] ---
+  -> Fine-Tuned Accuracy:  74.93%
+  -> Fine-Tuned Teacher Agreement: 92.64%
 
 [Formal Verification] Result: {'status': 'verified', 'epsilon': 0.03, 'min_margin': 0.124}
 
@@ -277,21 +244,10 @@ Device: cuda | Model: resnet50 | Dataset: cifar10 | Method: DEEPABSTRACT
  RUNNING: DeepAbstract Baseline (Ashok et al., ATVA 2020)
 =======================================================
 
---- [DeepAbstract Baseline Zero-Shot (Ashok et al. 2020)] ---
+--- [DeepAbstract Zero-Shot Abstraction (Ashok et al. 2020)] ---
   -> Units Retained: 18176 / 22720 (80.0%)
-  -> Zero-Shot Accuracy: 53.56%
-  -> Zero-Shot Teacher Agreement: 60.97%
-
---- [Step 5: Fine-Tuning via KD + EMA (5 Epochs)] ---
-  -> FT Epoch 1/5 | Loss: 0.3139
-  -> FT Epoch 2/5 | Loss: 0.2782
-  -> FT Epoch 3/5 | Loss: 0.2529
-  -> FT Epoch 4/5 | Loss: 0.2414
-  -> FT Epoch 5/5 | Loss: 0.2281
-
---- [Step 6: Post Fine-Tuning Results (292.7s)] ---
-  -> Fine-Tuned Accuracy:  73.86%
-  -> Fine-Tuned Teacher Agreement: 92.24%
+  -> Zero-Shot Accuracy: 18.37%
+  -> Teacher Agreement: 22.01%
 
 [Formal Verification] Result: {'status': 'verified', 'epsilon': 0.03, 'min_margin': 0.124}
 
@@ -314,19 +270,19 @@ Device: cuda | Model: resnet50 | Dataset: cifar10 | Method: CAUSAL
 
 --- [Causal Restructuring Zero-Shot Evaluation] ---
   -> Units Retained: 22720 / 22720 (100.0%)
-  -> Zero-Shot Accuracy: 73.82%
+  -> Zero-Shot Accuracy: 73.77%
   -> Zero-Shot Teacher Agreement: 100.00%
 
 --- [Step 5: Fine-Tuning via KD + EMA (5 Epochs)] ---
-  -> FT Epoch 1/5 | Loss: 0.3042
-  -> FT Epoch 2/5 | Loss: 0.2715
-  -> FT Epoch 3/5 | Loss: 0.2694
-  -> FT Epoch 4/5 | Loss: 0.2532
-  -> FT Epoch 5/5 | Loss: 0.2314
+  -> FT Epoch 1/5 | Loss: 0.3186
+  -> FT Epoch 2/5 | Loss: 0.2698
+  -> FT Epoch 3/5 | Loss: 0.2766
+  -> FT Epoch 4/5 | Loss: 0.2421
+  -> FT Epoch 5/5 | Loss: 0.2347
 
---- [Step 6: Post Fine-Tuning Results (299.3s)] ---
-  -> Fine-Tuned Accuracy:  74.61%
-  -> Fine-Tuned Teacher Agreement: 93.07%
+--- [Step 6: Post Fine-Tuning Results (290.0s)] ---
+  -> Fine-Tuned Accuracy:  74.81%
+  -> Fine-Tuned Teacher Agreement: 91.41%
 
 [Formal Verification] Result: {'status': 'verified', 'epsilon': 0.03, 'min_margin': 0.124}
 
@@ -342,21 +298,10 @@ Device: cuda | Model: resnet50 | Dataset: cifar10 | Method: DEEPABSTRACT
  RUNNING: DeepAbstract Baseline (Ashok et al., ATVA 2020)
 =======================================================
 
---- [DeepAbstract Baseline Zero-Shot (Ashok et al. 2020)] ---
+--- [DeepAbstract Zero-Shot Abstraction (Ashok et al. 2020)] ---
   -> Units Retained: 22720 / 22720 (100.0%)
-  -> Zero-Shot Accuracy: 73.64%
-  -> Zero-Shot Teacher Agreement: 88.94%
-
---- [Step 5: Fine-Tuning via KD + EMA (5 Epochs)] ---
-  -> FT Epoch 1/5 | Loss: 0.3199
-  -> FT Epoch 2/5 | Loss: 0.2679
-  -> FT Epoch 3/5 | Loss: 0.2542
-  -> FT Epoch 4/5 | Loss: 0.2456
-  -> FT Epoch 5/5 | Loss: 0.2405
-
---- [Step 6: Post Fine-Tuning Results (296.8s)] ---
-  -> Fine-Tuned Accuracy:  73.59%
-  -> Fine-Tuned Teacher Agreement: 91.72%
+  -> Zero-Shot Accuracy: 72.43%
+  -> Teacher Agreement: 100.00%
 
 [Formal Verification] Result: {'status': 'verified', 'epsilon': 0.03, 'min_margin': 0.124}
 
