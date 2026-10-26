@@ -127,6 +127,7 @@ def main():
         print(" RUNNING: DeepAbstract Baseline (Ashok et al., ATVA 2020)")
         print("=======================================================")
         
+        model_id_str = f"{args.model}_{args.dataset}"
         da_results = run_deepabstract_baseline(
             teacher_model=model,
             val_loader=val_loader,
@@ -135,6 +136,7 @@ def main():
             reduction_rate=args.reduction_rate,
             cluster_method="kmeans",
             device=device,
+            model_id=model_id_str,
             ft_epochs=args.ft_epochs
         )
 

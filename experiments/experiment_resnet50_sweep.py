@@ -45,7 +45,8 @@ def parse_metrics(output_str):
     if zs_acc_match:
         metrics["zs_acc"] = float(zs_acc_match.group(1))
 
-    zs_agr_match = re.search(r"Zero-Shot Teacher Agreement:\s*([\d\.]+)%", output_str)
+    # Updated regex to match both "Zero-Shot Teacher Agreement:" and "Teacher Agreement:"
+    zs_agr_match = re.search(r"(?:Zero-Shot\s+)?Teacher Agreement:\s*([\d\.]+)%", output_str)
     if zs_agr_match:
         metrics["zs_agr"] = float(zs_agr_match.group(1))
 

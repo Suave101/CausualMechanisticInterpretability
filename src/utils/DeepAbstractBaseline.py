@@ -97,47 +97,56 @@ def run_deepabstract_baseline(
     val_loader: torch.utils.data.DataLoader,
     test_loader: torch.utils.data.DataLoader,
     reduction_rate: float = 0.4,
-    accuracy_threshold: float = None,  # Parameter alpha in Paper Algorithm 2
+    accuracy_threshold: float = None,
     cluster_method: str = "kmeans",
     device: torch.device = torch.device("cpu"),
-    num_calibration_samples: int = 54000,  # Calibration set size N
-    train_loader: torch.utils.data.DataLoader = None,  # Accepted for main.py interface compatibility
+    num_calibration_samples: int = 54000,
+    train_loader: torch.utils.data.DataLoader = None,
+    model_id: str = "default_model",
+    cache_dir: str = "cache",
     **kwargs
 ):
     """
-    Executes the exact DeepAbstract framework (Ashok et al., 2020).
+    Executes DeepAbstract framework (Ashok et al., 2020) with Activation Caching.
     """
-    teacher_model.eval()
+    os.makedirs(cache_dir, exist_ok=True)
+    cache_path = os.path.join(cache_dir, f"{model_id}_deepabstract_activations.pt")
 
-    # Safely batch-extract layer activations on GPU and aggregate on CPU RAM
-    layer_fps_list = []
-    total_samples = 0
+    # --- Activation Fingerprint Disk Caching ---
+    if os.path.exists(cache_path):
+        print(f"--> [Cache Hit] Loading DeepAbstract activations from {cache_path}")
+        layer_activations = torch.load(cache_path)
+    else:
+        print(f"--> [Cache Miss] Extracting DeepAbstract layer activations ({num_calibration_samples} samples)...")
+        teacher_model.eval()
+        layer_fps_list = []
+        total_samples = 0
 
-    with torch.no_grad():
-        for x, _ in val_loader:
-            x = x.to(device)
-            batch_acts = teacher_model.get_layer_activations(x)
-            
-            if not layer_fps_list:
-                layer_fps_list = [[] for _ in range(len(batch_acts))]
-            
-            for l_idx, act in enumerate(batch_acts):
-                # Format 4D tensor (B, C, H, W) -> (C, B) or 2D tensor (B, C) -> (C, B)
-                if act.dim() == 4:
-                    act_pooled = act.mean(dim=(2, 3))
-                else:
-                    act_pooled = act
-                layer_fps_list[l_idx].append(act_pooled.T.cpu().numpy())
-            
-            total_samples += x.size(0)
-            if total_samples >= num_calibration_samples:
-                break
+        with torch.no_grad():
+            for x, _ in val_loader:
+                x = x.to(device)
+                batch_acts = teacher_model.get_layer_activations(x)
+                
+                if not layer_fps_list:
+                    layer_fps_list = [[] for _ in range(len(batch_acts))]
+                
+                for l_idx, act in enumerate(batch_acts):
+                    if act.dim() == 4:
+                        act_pooled = act.mean(dim=(2, 3))
+                    else:
+                        act_pooled = act
+                    layer_fps_list[l_idx].append(act_pooled.T.cpu().numpy())
+                
+                total_samples += x.size(0)
+                if total_samples >= num_calibration_samples:
+                    break
 
-    # Concatenate mini-batch activation fingerprints along the sample axis
-    layer_activations = [
-        np.concatenate(fps, axis=1)[:, :num_calibration_samples]
-        for fps in layer_fps_list
-    ]
+        layer_activations = [
+            np.concatenate(fps, axis=1)[:, :num_calibration_samples]
+            for fps in layer_fps_list
+        ]
+        torch.save(layer_activations, cache_path)
+        print(f"--> Saved activation fingerprints to {cache_path}")
 
     sub_model = copy.deepcopy(teacher_model).to(device)
     linear_layers = get_linear_layers(sub_model)
