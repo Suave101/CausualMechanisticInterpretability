@@ -7,6 +7,7 @@ from src.utils.checkpoint_utils import load_or_cache_model
 from src.models.mlp import build_3layer_mlp, build_5layer_mlp
 from src.models.resnet_cifar import ResNet18CIFAR, ResNet50CIFAR
 from src.models.resnet_imagenet import ResNetImageNet
+import os
 
 # Causal Restructuring Framework Modules
 from src.utils.CMI_Method import (
