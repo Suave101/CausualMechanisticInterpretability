@@ -8,6 +8,8 @@
 #SBATCH --cpus-per-task=12
 #SBATCH --gres=gpu:4
 #SBATCH --mem=32GB
+#SBATCH --mail-type=END,FAIL
+#SBATCH --mail-user=adoyle2025@my.fit.edu  # FIT TRACKS email notification
 
 # 1. Load Cluster Modules
 module load datasets/cifar-10
