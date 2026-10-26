@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 from sklearn.cluster import KMeans, AgglomerativeClustering
+import os
 
 def get_linear_layers(model: nn.Module):
     """Extracts all nn.Linear submodules from the model in execution order."""
