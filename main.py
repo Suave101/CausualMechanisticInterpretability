@@ -1,5 +1,6 @@
 # main.py
 import argparse
+import os
 import torch
 
 from src.utils.DataLoader import get_dataset
@@ -7,7 +8,6 @@ from src.utils.checkpoint_utils import load_or_cache_model
 from src.models.mlp import build_3layer_mlp, build_5layer_mlp
 from src.models.resnet_cifar import ResNet18CIFAR, ResNet50CIFAR
 from src.models.resnet_imagenet import ResNetImageNet
-import os
 
 # Causal Restructuring Framework Modules
 from src.utils.CMI_Method import (
@@ -37,11 +37,12 @@ def parse_args():
     )
     
     # Model & Dataset Options
-    parser.add_argument("--model", type=str, default="resnet18", choices=["mlp3", "mlp5", "resnet18", "resnet50", "resnet101"])
-    parser.add_argument("--dataset", type=str, default="cifar10", choices=["uci_digits", "cifar10", "cifar100", "imagenet1k"])
+    parser.add_argument("--model", type=str, default="mlp3", choices=["mlp3", "mlp5", "resnet18", "resnet50", "resnet101"])
+    parser.add_argument("--dataset", type=str, default="uci_digits", choices=["uci_digits", "cifar10", "cifar100", "imagenet1k"])
     
     # Causal Framework Parameters
     parser.add_argument("--top_n_pct", type=float, default=15.0, help="Percentage of top causal neurons/channels reserved")
+    parser.add_argument("--causal_weight", type=float, default=0.5, help="Weight alpha balance: 1.0 = pure causal score, 0.0 = pure fingerprint distance")
     
     # DeepAbstract Baseline Parameters
     parser.add_argument("--reduction_rate", type=float, default=0.425, help="Target channel reduction ratio for DeepAbstract")
@@ -58,14 +59,14 @@ def parse_args():
 def main():
     args = parse_args()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Device: {device} | Model: {args.model} | Dataset: {args.dataset} | Method: {args.method.upper()}")
+    print(f"Device: {device} | Model: {args.model} | Dataset: {args.dataset} | Method: {args.method.upper()} | Causal Weight (Alpha): {args.causal_weight}")
 
-    # 1. Instantiate Data Loaders
+    # Instantiate Data Loaders
     train_loader, val_loader, test_loader, num_classes, in_dim, _ = get_dataset(
         args.dataset, batch_size=args.batch_size
     )
 
-    # 2. Instantiate Base Model Architecture
+    # Instantiate Base Model Architecture
     if args.model == "mlp3":
         model = build_3layer_mlp(in_dim=in_dim, num_classes=num_classes)
     elif args.model == "mlp5":
@@ -77,7 +78,7 @@ def main():
     elif args.model in ["resnet18", "resnet50", "resnet101"]:
         model = ResNetImageNet(variant=args.model, pretrained=args.use_pretrained)
 
-    # 3. Load Cached or Pre-Trained Teacher Weights
+    # Load Cached or Pre-Trained Teacher Weights
     model = load_or_cache_model(
         model=model,
         model_name=args.model,
@@ -87,25 +88,26 @@ def main():
         force_train=args.force_train
     ).to(device)
 
-    # 4. Method Execution Pipeline
+    # Method Execution Pipeline
     if args.method in ["causal", "both"]:
         print("\n=======================================================")
         print(" RUNNING: Causal Restructuring & Compression Framework")
         print("=======================================================")
         
-        # Step 2: Causal Fingerprinting & Score Profiling (Now Cached!)
+        # Causal Fingerprinting & Score Profiling
         model_id_str = f"{args.model}_{args.dataset}"
         all_fps, scores, unit_map = compute_causal_fingerprints_and_scores(
             model, val_loader, device, model_id=model_id_str
         )
-
-        # Steps 3 & 4: Causal Medoid Clustering & Zero-Shot Evaluation
-        sub_model, sorted_kept, zs_metrics = perform_causal_restructuring(
+    
+        # Causal Restructuring & Compression
+        sub_model, sorted_kept, mask_vector, zs_metrics = perform_causal_restructuring(
             teacher_model=model,
             val_loader=val_loader,
             test_loader=test_loader,
             top_n_pct=args.top_n_pct,
             reduction_rate=args.reduction_rate,
+            causal_weight=args.causal_weight,
             all_fps=all_fps,
             ablation_scores=scores,
             unit_map=unit_map,
@@ -113,13 +115,14 @@ def main():
             model_id=model_id_str
         )
 
-        # Steps 5 & 6: Fine-Tuning via Knowledge Distillation (KD) + EMA
+        # Fine-Tuning via Knowledge Distillation (KD) + EMA
         ft_metrics = fine_tune_submodel(
             sub_model=sub_model,
             teacher_model=model,
             train_loader=train_loader,
             test_loader=test_loader,
             device=device,
+            mask_vector=mask_vector,
             ft_epochs=args.ft_epochs
         )
 
@@ -141,7 +144,7 @@ def main():
             ft_epochs=args.ft_epochs
         )
 
-    # 5. Formal Safety Verification Pass
+    # Formal Safety Verification Pass
     verifier = AlphaBetaCrownVerifier(model)
     sample_x, _ = next(iter(test_loader))
     verif_res = verifier.verify_robustness(sample_x.to(device))

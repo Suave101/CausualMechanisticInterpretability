@@ -6,7 +6,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 class EMAModel:
-    """Exponential Moving Average (EMA) Parameter Smoother."""
+    """Exponential Moving Average (EMA) Parameter Smoother[cite: 23]."""
     def __init__(self, model, decay=0.98):
         self.model = model
         self.decay = decay
@@ -32,7 +32,7 @@ class EMAModel:
                 p.data.copy_(self.backup[n])
 
 def kd_loss_fn(student_logits, teacher_logits, labels, T=2.0, alpha=0.85):
-    """Knowledge Distillation Loss combining soft KL-Divergence and Cross-Entropy."""
+    """Knowledge Distillation Loss combining soft KL-Divergence and Cross-Entropy[cite: 23, 24]."""
     soft_teacher = F.softmax(teacher_logits / T, dim=1)
     soft_student = F.log_softmax(student_logits / T, dim=1)
     kl = F.kl_div(soft_student, soft_teacher, reduction="batchmean") * (T ** 2)
@@ -45,6 +45,7 @@ def fine_tune_submodel(
     train_loader,
     test_loader,
     device,
+    mask_vector=None,
     ft_epochs=5,
     lr=1e-3,
     beta=0.98,
@@ -52,7 +53,8 @@ def fine_tune_submodel(
     alpha=0.85
 ):
     """
-    Executes Knowledge Distillation (KD) fine-tuning with Exponential Moving Average (EMA).
+    Executes Knowledge Distillation (KD) fine-tuning with Exponential Moving Average (EMA)[cite: 23].
+    Enforces channel masking throughout training and evaluation if mask_vector is provided.
     """
     print(f"\n--- [Step 5: Fine-Tuning via KD + EMA ({ft_epochs} Epochs)] ---")
     optimizer = optim.Adam(sub_model.parameters(), lr=lr)
@@ -69,7 +71,12 @@ def fine_tune_submodel(
             with torch.no_grad():
                 t_logits = teacher_model(bx)
             optimizer.zero_grad()
-            s_logits = sub_model(bx)
+            
+            if mask_vector is not None and hasattr(sub_model, "forward_with_mask"):
+                s_logits = sub_model.forward_with_mask(bx, mask_vector)
+            else:
+                s_logits = sub_model(bx)
+
             loss = kd_loss_fn(s_logits, t_logits, by, T=T, alpha=alpha)
             loss.backward()
             optimizer.step()
@@ -77,11 +84,9 @@ def fine_tune_submodel(
             running_loss += loss.item()
         print(f"  -> FT Epoch {epoch+1}/{ft_epochs} | Loss: {running_loss/len(train_loader):.4f}")
 
-    # Clear cached GPU memory prior to evaluation
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
 
-    # Evaluate Fine-Tuned Model using EMA Shadow Weights (Batched to prevent CUDA OOM)
     ema.apply_shadow()
     sub_model.eval()
     teacher_model.eval()
@@ -94,7 +99,13 @@ def fine_tune_submodel(
         for bx, by in test_loader:
             bx, by = bx.to(device), by.to(device)
             t_preds = teacher_model(bx).argmax(dim=1)
-            ft_preds = sub_model(bx).argmax(dim=1)
+            
+            if mask_vector is not None and hasattr(sub_model, "forward_with_mask"):
+                ft_logits = sub_model.forward_with_mask(bx, mask_vector)
+            else:
+                ft_logits = sub_model(bx)
+
+            ft_preds = ft_logits.argmax(dim=1)
 
             total_correct += (ft_preds == by).sum().item()
             total_agreement += (ft_preds == t_preds).sum().item()

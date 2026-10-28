@@ -9,7 +9,7 @@ from src.utils.CMI_Method import compute_causal_fingerprints_and_scores
 
 
 def make_safe_fps(fps):
-    """Ensures activation fingerprints are non-zero float64 vectors normalized to unit length[cite: 19, 20]."""
+    """Ensures activation fingerprints are non-zero float64 vectors normalized to unit length."""
     fps_safe = fps.copy().astype(np.float64)
     norms = np.linalg.norm(fps_safe, axis=1, keepdims=True)
     zero_mask = (norms < 1e-12).squeeze()
@@ -24,9 +24,12 @@ def make_safe_fps(fps):
     return fps_safe / (norms + 1e-12)
 
 
-def find_causal_medoid(fps, ablation_scores, members):
+def find_causal_medoid(fps, ablation_scores, members, causal_weight=0.5):
     """
-    Selects cluster medoid c* closest to centroid, applying a penalty to low-causal units (Step 3)[cite: 19, 20].
+    Selects cluster medoid balancing fingerprint distance and causal score.
+    causal_weight (alpha) in [0.0, 1.0]:
+      - 0.0 = Pure geometric centroid distance
+      - 1.0 = Pure max causal score selection
     """
     if len(members) == 1:
         return members[0]
@@ -41,18 +44,23 @@ def find_causal_medoid(fps, ablation_scores, members):
     
     sub_scores = ablation_scores[members]
     max_score = np.max(sub_scores) + 1e-8
-    penalty = 0.5 * (1.0 - (sub_scores / max_score))
+    penalty = 1.0 - (sub_scores / max_score)
     
-    return members[np.argmin(dists + penalty)]
+    combined_score = (1.0 - causal_weight) * dists + causal_weight * penalty
+    
+    return members[np.argmin(combined_score)]
 
 
-def cluster_background_units(fingerprints, ablation_scores, unit_map, reserved_units, reduction_rate=0.5):
-    """
-    Clusters non-reserved background units per layer into k medoid groups (Step 3)[cite: 19, 20].
-    Returns global kept unit indices and layer-wise cluster mappings for parameter folding[cite: 19, 21].
-    """
+def cluster_background_units(
+    fingerprints, 
+    ablation_scores, 
+    unit_map, 
+    reserved_units, 
+    reduction_rate=0.5, 
+    causal_weight=0.5
+):
     kept_units = set(reserved_units)
-    layer_cluster_map = {}  # Maps layer_idx -> list of (medoid_local_idx, member_local_indices)
+    layer_cluster_map = {}
     
     layer_to_units = {}
     for global_idx, (l_idx, u_idx) in enumerate(unit_map):
@@ -63,7 +71,6 @@ def cluster_background_units(fingerprints, ablation_scores, unit_map, reserved_u
     for l_idx, layer_global_indices in layer_to_units.items():
         layer_cluster_map[l_idx] = []
         
-        # Add individual reserved units as single-element clusters (|m| = 1)[cite: 19]
         for g_idx in layer_global_indices:
             if g_idx in reserved_units:
                 u_idx = unit_map[g_idx][1]
@@ -93,7 +100,9 @@ def cluster_background_units(fingerprints, ablation_scores, unit_map, reserved_u
                 if len(members_sub_idx) == 0:
                     continue
                 
-                medoid_sub_idx = find_causal_medoid(fps_safe, sub_scores, members_sub_idx)
+                medoid_sub_idx = find_causal_medoid(
+                    fps_safe, sub_scores, members_sub_idx, causal_weight=causal_weight
+                )
                 medoid_global = bg_units[medoid_sub_idx]
                 kept_units.add(medoid_global)
                 
@@ -105,19 +114,32 @@ def cluster_background_units(fingerprints, ablation_scores, unit_map, reserved_u
     return sorted(list(kept_units)), layer_cluster_map
 
 
-def extract_parametric_layers(model: nn.Module):
-    """Extracts all parameter-bearing layers (nn.Conv2d, nn.Linear) in execution order."""
-    return [m for m in model.modules() if isinstance(m, (nn.Conv2d, nn.Linear))]
+def extract_target_layers(model: nn.Module):
+    """
+    Extracts primary parametric layers (nn.Conv2d, nn.Linear) in execution order,
+    skipping shortcut/downsample side branches to maintain 1:1 alignment with activation indices.
+    """
+    if hasattr(model, "get_target_layers") and callable(model.get_target_layers):
+        return model.get_target_layers()
+    if hasattr(model, "target_layers"):
+        return model.target_layers
+
+    target_layers = []
+    for name, m in model.named_modules():
+        if isinstance(m, (nn.Conv2d, nn.Linear)):
+            if "downsample" not in name and "shortcut" not in name:
+                target_layers.append(m)
+    return target_layers
 
 
 def apply_step4_weight_merging(model: nn.Module, layer_cluster_map: dict):
     """
-    Executes Step 4 Weight Merging (PDF Section 4)[cite: 21, 22]:
-    1. Incoming Weight Averaging: W^{in}_{c*} <- (1 / |m|) * sum_{i in m} W^{in}_i[cite: 21]
-    2. Outgoing Weight Folding: W_{out}[:, c*] <- W_{out}[:, c*] + sum_{i in m, i != c*} (W_{out}[:, i] / sqrt(|m|))[cite: 21, 22]
-    3. Zero out non-representative weights[cite: 21].
+    Executes Step 4 Weight Merging:
+    1. Incoming Weight Averaging
+    2. Outgoing Weight Folding scaled by sqrt(|m|)
+    3. Zeroing out non-representative weights
     """
-    param_layers = extract_parametric_layers(model)
+    param_layers = extract_target_layers(model)
     
     with torch.no_grad():
         for l_idx, clusters in layer_cluster_map.items():
@@ -128,6 +150,13 @@ def apply_step4_weight_merging(model: nn.Module, layer_cluster_map: dict):
             has_next = (l_idx + 1) < len(param_layers)
             next_layer = param_layers[l_idx + 1] if has_next else None
             
+            can_fold_outgoing = False
+            if next_layer is not None:
+                curr_out_channels = curr_layer.weight.shape[0]
+                next_in_channels = next_layer.weight.shape[1] if next_layer.weight.dim() >= 2 else 0
+                if curr_out_channels == next_in_channels:
+                    can_fold_outgoing = True
+            
             for medoid_u, members_u in clusters:
                 if len(members_u) <= 1:
                     continue
@@ -136,23 +165,28 @@ def apply_step4_weight_merging(model: nn.Module, layer_cluster_map: dict):
                 sqrt_m = np.sqrt(m_size)
                 non_medoid_u = [u for u in members_u if u != medoid_u]
                 
-                # 1. Incoming Weight Averaging[cite: 21]
+                # Bounds check against layer output dimension
+                if medoid_u >= curr_layer.weight.shape[0] or any(u >= curr_layer.weight.shape[0] for u in non_medoid_u):
+                    continue
+
+                # 1. Incoming Weight Averaging
                 curr_layer.weight.data[medoid_u] = curr_layer.weight.data[members_u].mean(dim=0)
                 if curr_layer.bias is not None:
                     curr_layer.bias.data[medoid_u] = curr_layer.bias.data[members_u].mean(dim=0)
                 
-                # 2. Outgoing Weight Folding into Medoid Column[cite: 21, 22]
-                if next_layer is not None:
-                    if isinstance(next_layer, nn.Linear):
-                        folded_outgoing = next_layer.weight.data[:, non_medoid_u].sum(dim=1) / sqrt_m
-                        next_layer.weight.data[:, medoid_u] += folded_outgoing
-                        next_layer.weight.data[:, non_medoid_u] = 0.0
-                    elif isinstance(next_layer, nn.Conv2d):
-                        folded_outgoing = next_layer.weight.data[:, non_medoid_u, :, :].sum(dim=1) / sqrt_m
-                        next_layer.weight.data[:, medoid_u, :, :] += folded_outgoing
-                        next_layer.weight.data[:, non_medoid_u, :, :] = 0.0
+                # 2. Outgoing Weight Folding into Medoid Column
+                if can_fold_outgoing:
+                    if max(members_u) < next_layer.weight.shape[1]:
+                        if isinstance(next_layer, nn.Linear):
+                            folded_outgoing = next_layer.weight.data[:, non_medoid_u].sum(dim=1) / sqrt_m
+                            next_layer.weight.data[:, medoid_u] += folded_outgoing
+                            next_layer.weight.data[:, non_medoid_u] = 0.0
+                        elif isinstance(next_layer, nn.Conv2d):
+                            folded_outgoing = next_layer.weight.data[:, non_medoid_u, :, :].sum(dim=1) / sqrt_m
+                            next_layer.weight.data[:, medoid_u, :, :] += folded_outgoing
+                            next_layer.weight.data[:, non_medoid_u, :, :] = 0.0
 
-                # 3. Zero out non-medoid incoming parameters[cite: 21]
+                # 3. Zero out non-medoid incoming parameters
                 curr_layer.weight.data[non_medoid_u] = 0.0
                 if curr_layer.bias is not None:
                     curr_layer.bias.data[non_medoid_u] = 0.0
@@ -173,15 +207,26 @@ def recalibrate_batchnorm(model, val_loader, mask_vector, device, num_batches=15
     model.eval()
 
 
-def evaluate_masked_model(model, test_loader, kept_units, total_units, device, val_loader=None):
-    """Evaluates zero-shot test accuracy and teacher agreement (Step 6)[cite: 28]."""
+def evaluate_masked_model(
+    sub_model, 
+    teacher_model, 
+    test_loader, 
+    kept_units, 
+    total_units, 
+    device, 
+    val_loader=None
+):
+    """Evaluates zero-shot test accuracy and teacher agreement."""
     mask_vector = torch.zeros(total_units, device=device)
     mask_vector[list(kept_units)] = 1.0
 
     if val_loader is not None:
-        recalibrate_batchnorm(model, val_loader, mask_vector, device)
+        recalibrate_batchnorm(sub_model, val_loader, mask_vector, device)
     
-    model.eval()
+    sub_model.eval()
+    if teacher_model is not None:
+        teacher_model.eval()
+
     correct_zs = 0
     correct_agr = 0
     total_samples = 0
@@ -190,13 +235,16 @@ def evaluate_masked_model(model, test_loader, kept_units, total_units, device, v
         for x, y in test_loader:
             x, y = x.to(device), y.to(device)
             
-            teacher_logits = model(x)
-            teacher_preds = teacher_logits.argmax(dim=1)
-            
-            if hasattr(model, "forward_with_mask"):
-                zs_logits = model.forward_with_mask(x, mask_vector)
+            if teacher_model is not None:
+                teacher_logits = teacher_model(x)
+                teacher_preds = teacher_logits.argmax(dim=1)
             else:
-                zs_logits = model(x)
+                teacher_preds = y
+            
+            if hasattr(sub_model, "forward_with_mask"):
+                zs_logits = sub_model.forward_with_mask(x, mask_vector)
+            else:
+                zs_logits = sub_model(x)
                 
             zs_preds = zs_logits.argmax(dim=1)
             
@@ -221,6 +269,7 @@ def perform_causal_restructuring(
     test_loader=None,
     top_n_pct=15.0,
     reduction_rate=0.5,
+    causal_weight=0.5,
     device=torch.device("cpu"),
     cache_dir="cache",
     model_id="mlp3_uci_digits",
@@ -229,7 +278,6 @@ def perform_causal_restructuring(
     unit_map=None,
     **kwargs
 ):
-    """Full execution pipeline for Causal Restructuring (Steps 2–4)[cite: 16, 19, 21]."""
     if test_loader is None and val_loader is not None:
         test_loader = val_loader
     if val_loader is None and test_loader is not None:
@@ -258,7 +306,6 @@ def perform_causal_restructuring(
                 "fingerprints": fingerprints,
                 "unit_map": unit_map
             }, cache_path)
-            print(f"--> Saved causal metrics to {cache_path}")
 
     if isinstance(ablation_scores, torch.Tensor):
         ablation_scores = ablation_scores.cpu().numpy()
@@ -271,25 +318,29 @@ def perform_causal_restructuring(
     sorted_unit_indices = np.argsort(ablation_scores)[::-1]
     reserved_units = set(sorted_unit_indices[:k_reserve])
     
-    # Step 3: Medoid Clustering & Reserve Selection[cite: 19]
     kept_units, layer_cluster_map = cluster_background_units(
         fingerprints=fingerprints,
         ablation_scores=ablation_scores,
         unit_map=unit_map,
         reserved_units=reserved_units,
-        reduction_rate=reduction_rate
+        reduction_rate=reduction_rate,
+        causal_weight=causal_weight
     )
 
     mask_vector = torch.zeros(total_units, device=device)
     mask_vector[kept_units] = 1.0
 
     sub_model = copy.deepcopy(teacher_model).to(device)
-    
-    # Step 4: Parameter Folding & Weight Merging[cite: 21, 22]
     apply_step4_weight_merging(sub_model, layer_cluster_map)
 
     zs_metrics = evaluate_masked_model(
-        sub_model, test_loader, kept_units, total_units, device, val_loader=val_loader
+        sub_model=sub_model,
+        teacher_model=teacher_model,
+        test_loader=test_loader,
+        kept_units=kept_units,
+        total_units=total_units,
+        device=device,
+        val_loader=val_loader
     )
 
     return sub_model, kept_units, mask_vector, zs_metrics
