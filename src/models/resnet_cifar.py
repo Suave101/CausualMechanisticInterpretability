@@ -201,8 +201,12 @@ class ResNet18CIFAR(RearrangeableModel):
         out = self.linear(out)
         return out
 
+    def get_foldable_layers(self):
+        """Stem and block conv1 outputs feed the next conv directly; conv2 outputs enter the residual add."""
+        return [0] + [1 + 2 * b for b in range(8)]
+
     def get_total_units(self):
-        return 64 + (64 + 64) * 2 + (128 + 128) * 2 + (256 + 256) * 2 + (512 + 512) * 2
+        return 64 + (64 + 64) * 2+ (128 + 128) * 2 + (256 + 256) * 2 + (512 + 512) * 2
 
 
 class ResNet50CIFAR(RearrangeableModel):
@@ -320,5 +324,9 @@ class ResNet50CIFAR(RearrangeableModel):
         out = self.linear(out)
         return out
 
+    def get_foldable_layers(self):
+        """Stem, conv1 and conv2 outputs feed the next conv directly; conv3 outputs enter the residual add."""
+        return [0] + [1 + 3 * b + k for b in range(16) for k in (0, 1)]
+
     def get_total_units(self):
-        return 64 + (3 * (64 + 64 + 256)) + (4 * (128 + 128 + 512)) + (6 * (256 + 256 + 1024)) + (3 * (512 + 512 + 2048))
+        return 64 + (3 * (64+ 64 + 256)) + (4 * (128 + 128 + 512)) + (6 * (256 + 256 + 1024)) + (3 * (512 + 512 + 2048))

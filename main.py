@@ -43,6 +43,7 @@ def parse_args():
     # Causal Framework Parameters
     parser.add_argument("--top_n_pct", type=float, default=15.0, help="Percentage of top causal neurons/channels reserved")
     parser.add_argument("--causal_weight", type=float, default=0.5, help="Weight alpha balance: 1.0 = pure causal score, 0.0 = pure fingerprint distance")
+    parser.add_argument("--reserve_scope", type=str, default="layer", choices=["layer", "global"], help="Reserve top_n_pct per layer or across all units")
     
     # DeepAbstract Baseline Parameters
     parser.add_argument("--reduction_rate", type=float, default=0.425, help="Target channel reduction ratio for DeepAbstract")
@@ -108,6 +109,7 @@ def main():
             top_n_pct=args.top_n_pct,
             reduction_rate=args.reduction_rate,
             causal_weight=args.causal_weight,
+            reserve_scope=args.reserve_scope,
             all_fps=all_fps,
             ablation_scores=scores,
             unit_map=unit_map,

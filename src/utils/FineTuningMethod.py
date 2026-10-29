@@ -13,23 +13,38 @@ class EMAModel:
         self.shadow = {
             n: p.data.clone() for n, p in model.named_parameters() if p.requires_grad
         }
+        # BN running statistics are smoothed too, so they match the EMA weights
+        self.buffer_shadow = {
+            n: b.data.clone() for n, b in model.named_buffers() if b.dtype.is_floating_point
+        }
         self.backup = {}
+        self.buffer_backup = {}
 
     def update(self):
         for n, p in self.model.named_parameters():
             if p.requires_grad:
                 self.shadow[n] = (1.0 - self.decay) * p.data + self.decay * self.shadow[n]
+        for n, b in self.model.named_buffers():
+            if n in self.buffer_shadow:
+                self.buffer_shadow[n] = (1.0 - self.decay) * b.data + self.decay * self.buffer_shadow[n]
 
     def apply_shadow(self):
         for n, p in self.model.named_parameters():
             if p.requires_grad:
                 self.backup[n] = p.data.clone()
                 p.data.copy_(self.shadow[n])
+        for n, b in self.model.named_buffers():
+            if n in self.buffer_shadow:
+                self.buffer_backup[n] = b.data.clone()
+                b.data.copy_(self.buffer_shadow[n])
 
     def restore(self):
         for n, p in self.model.named_parameters():
             if p.requires_grad:
                 p.data.copy_(self.backup[n])
+        for n, b in self.model.named_buffers():
+            if n in self.buffer_backup:
+                b.data.copy_(self.buffer_backup[n])
 
 def kd_loss_fn(student_logits, teacher_logits, labels, T=2.0, alpha=0.85):
     """Knowledge Distillation Loss combining soft KL-Divergence and Cross-Entropy[cite: 23, 24]."""
