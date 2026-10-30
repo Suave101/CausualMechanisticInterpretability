@@ -44,6 +44,8 @@ python main.py [OPTIONS]
 | `--model` | `str` | `resnet18` | `mlp3`, `mlp5`, `resnet18`, `resnet50`, `resnet101` | Base model architecture. |
 | `--dataset` | `str` | `cifar10` | `uci_digits`, `cifar10`, `cifar100`, `imagenet1k` | Target dataset for training, profiling, and evaluation. |
 | `--top_n_pct` | `float` | `15.0` | Any positive float | Percentage of top-ranked causal neurons or channels to reserve during causal restructuring. |
+| `--causal_weight` | `float` | `0.5` | Float in `[0.0, 1.0]` | Medoid selection balance: `1.0` = pure causal score, `0.0` = pure fingerprint distance. |
+| `--reserve_scope` | `str` | `layer` | `layer`, `global` | Reserve the top `top_n_pct` units within each layer or across the whole network. |
 | `--reduction_rate` | `float` | `0.425` | Float in `(0.0, 1.0)` | Target channel reduction ratio for the DeepAbstract baseline (e.g., `0.425` = 42.5% reduction). |
 | `--use_pretrained` | `flag` | `True` | Standalone flag | Enables loading pre-trained weights for supported models when available. |
 | `--force_train` | `flag` | `False` | Standalone flag | Bypasses cached model weights and forces full re-training of the teacher model. |
@@ -75,57 +77,96 @@ python main.py --method causal --model mlp5 --dataset uci_digits --force_train -
 
 ```
 
+## Improved Restructuring (Least-Squares Reconstruction + Sensitivity Budget)
+
+Two extensions to the original framework account for nearly all of the gains over DeepAbstract. Both are available as options to `perform_causal_restructuring` in [`CausalRestructuringMethod.py`](src/utils/CausalRestructuringMethod.py). `main.py` does not expose them yet.
+
+| Option | Values | What it does |
+| --- | --- | --- |
+| `fold_mode` | `"sqrt"` (original), `"lsq"` | `"lsq"` replaces the √\|m\| weight folding with a closed-form least-squares reconstruction of the next layer's input from the kept units. |
+| `budget_mode` | `"uniform"` (original), `"sensitivity"` | `"sensitivity"` measures how much each layer can be compressed (KL to the teacher vs. keep ratio) and distributes the unit budget across layers accordingly. |
+| `top_n_pct` / `reduction_rate` | | With `reduction_rate=1.0`, every kept unit is chosen by causal score (no clustering). This is the best setting on ResNet-18. |
+
+```python
+from src.utils.CausalRestructuringMethod import perform_causal_restructuring
+
+sub_model, kept, mask, zs = perform_causal_restructuring(
+    teacher_model=model, val_loader=val_loader, test_loader=test_loader,
+    top_n_pct=10.0, reduction_rate=1.0,          # keep 10% of units, all chosen by causal score
+    fold_mode="lsq", budget_mode="sensitivity",
+    calib_loader=train_loader, device=device,
+)
+```
+
+The full derivation of every step is in [`docs/causal_restructuring_math.md`](docs/causal_restructuring_math.md). A paper-style write-up of the results is in [`results/restructuring_paper.tex`](results/restructuring_paper.tex); upload it to Overleaf together with the three PNGs it references from `results/`.
+
 ## Experimental Results & Benchmarks
 
-We evaluate our **Causal Restructuring & Compression Framework** against the **DeepAbstract** baseline ([Ashok et al., 2020](https://github.com/steffi4321/DeepAbstract)) across varying reserve budgets (5% - 40%). Benchmarks measure both **Classification Accuracy (%)** and **Functional Agreement (%)** with the original baseline teacher model.
+All results below are **zero-shot**: no fine-tuning after restructuring. Each method keeps the same percentage of units. **Agreement** is the fraction of test inputs on which the restructured network predicts the same class as the teacher. The DeepAbstract baseline follows [Ashok et al., 2020](https://github.com/steffi4321/DeepAbstract).
 
-> 💡 **Understanding the Reserve Budget & Compression Ratio**
-> 
-> The sweep X-axis evaluates the causal **Reserve Budget** ($r \in [5\%, 40\%]$)—the percentage of top causally critical units ($S_i$) explicitly protected from parameter folding. The remaining $(100 - r)\%$ background units undergo agglomerative medoid clustering at a ~50% reduction rate. 
-> 
-> Across the sweep, total network parameter removal ranges from **47.5% reduction** (at $r = 5\%$) to **30.0% reduction** (at $r = 40\%$). The *DeepAbstract* baseline is dynamically calibrated to match these exact parameter removal rates at every benchmark point to guarantee a strict, apples-to-apples comparison.
+<img src="results/restructuring_accuracy.png" alt="Zero-shot accuracy vs. units kept for MLP-3, MLP-5 and ResNet-18" />
 
----
+<img src="results/restructuring_agreement.png" alt="Zero-shot agreement with the teacher vs. units kept" />
 
-### 1. MLP-3 on UCI Digits
+### Zero-shot accuracy (%)
 
-In pure zero-shot mode (prior to gradient updates), causal profiling prevents representation collapse by shielding high-impact decision units ($S_i$).
+MLPs: UCI digits, mean over 5 teacher seeds; teachers reach 97.3% (MLP-3) and 98.2% (MLP-5). ResNet-18: CIFAR-10, one teacher, 90.1%.
 
-| Reserve Budget ($r\%$) | Method | Zero-Shot Acc (%) | Zero-Shot Agreement (%) | Fine-Tuned Acc (%) | Fine-Tuned Agreement (%) |
-| :---: | :--- | :---: | :---: | :---: | :---: |
-| **5.0%** | DeepAbstract Baseline | 38.8% | 41.7% | 91.39% | 99.17% |
-| **5.0%** | **Causal Restructuring (Ours)** | **50.0%** | **50.3%** | **91.11%** | **99.44%** |
-| **15.0%** | DeepAbstract Baseline | 57.5% | 58.5% | 91.11% | 99.44% |
-| **15.0%** | **Causal Restructuring (Ours)** | **76.5% (+19.0%)** | **74.8% (+16.3%)** | **91.39%** | **99.17%** |
-| **25.0%** | DeepAbstract Baseline | 68.5% | 70.5% | 91.39% | 99.17% |
-| **25.0%** | **Causal Restructuring (Ours)** | **79.5% (+11.0%)** | **82.0% (+11.5%)** | **91.39%** | **99.17%** |
+| Model | Method | 10% kept | 20% kept | 30% kept | 50% kept |
+| --- | --- | :---: | :---: | :---: | :---: |
+| MLP-3 | DeepAbstract | 41.3 | 66.1 | 79.9 | 92.3 |
+| MLP-3 | Causal, original (√m fold) | 22.3 | 48.9 | 73.7 | 91.1 |
+| MLP-3 | **Causal + LSQ + budget** | **82.7** | **94.8** | **95.9** | **97.1** |
+| MLP-5 | DeepAbstract | 42.6 | 68.2 | 84.1 | 92.7 |
+| MLP-5 | Causal, original (√m fold) | 14.3 | 56.5 | 73.1 | 91.8 |
+| MLP-5 | **Causal + LSQ + budget** | **89.4** | **96.8** | **97.6** | **98.2** |
+| ResNet-18 | DeepAbstract | 13.4 | 15.3 | 28.6 | 66.0 |
+| ResNet-18 | Causal, original (√m fold) | 18.0 | 29.6 | 47.3 | 73.2 |
+| ResNet-18 | **Causal + LSQ + budget** | **42.9** | **59.2** | **70.7** | **84.8** |
 
-#### Visual Comparison (MLP-3)
+Every configuration, including agreement and the 5% and 80% points, is in [`results/restructuring_results.md`](results/restructuring_results.md).
 
-<img src="results/mlp_zero_shot_comparison.png" alt="MLP Zero Shot Comparison" />
+### Which units to keep
 
-<img src="results/mlp_fine_tuned_comparison.png" alt="MLP Fine Tuned Comparison" />
+All four curves below use the same least-squares reconstruction; only the rule for choosing kept units differs. Ranking by causal score beats k-means representatives (DeepAbstract's selection rule) and random selection at every compression level. The sensitivity budget adds the most at 10% kept.
 
----
-
-### 2. ResNet-18 on CIFAR-10
-
-For convolutional architectures, spatial activation fingerprinting combined with causal channel reservation protects residual sub-graphs.
-
-| Reserve Budget ($r\%$) | Method | Zero-Shot Acc (%) | Zero-Shot Agreement (%) | Fine-Tuned Acc (%) | Fine-Tuned Agreement (%) |
-| :---: | :--- | :---: | :---: | :---: | :---: |
-| **15.0%** | DeepAbstract Baseline | *[Pending]* | *[Pending]* | *[Pending]* | *[Pending]* |
-| **15.0%** | **Causal Restructuring (Ours)** | *[Pending]* | *[Pending]* | *[Pending]* | *[Pending]* |
-
-#### Visual Comparison (ResNet-18)
-<p align="center">
-  <img src="results/resnet18_zero_shot_comparison.png" width="48%" alt="ResNet18 Zero Shot Comparison" />
-  <img src="results/resnet18_fine_tuned_comparison.png" width="48%" alt="ResNet18 Fine Tuned Comparison" />
-</p>
-
----
+<img src="results/resnet18_selection_controls.png" width="60%" alt="ResNet-18 selection controls" />
 
 ### Key Takeaways
 
-1. **Zero-Shot Representation Fidelity**: Single-unit causal ablation profiling protects the primary decision manifold before parameter folding, yielding up to a **+19.0% accuracy advantage** over unweighted semantic clustering at a $15\%$ reserve budget.
-2. **Capacity Recovery**: Knowledge Distillation (KD) combined with Exponential Moving Average (EMA) parameter smoothing recovers task capacity rapidly, achieving up to **99.72% functional agreement** with the teacher model while running on a compressed sub-network.
+1. **Least-squares reconstruction is the largest single gain.** Each dropped unit is rebuilt from all kept units instead of being folded into one medoid with a fixed √|m| factor. On MLP-5 at 10% kept, accuracy rises from 14.3% to 87.7%.
+2. **The sensitivity budget matters on deep networks.** On ResNet-18 at 10% kept, it raises accuracy from 19.9% to 42.9% on top of LSQ.
+3. **The causal score is the right ranking.** Under identical reconstruction it beats k-means and random selection, and with LSQ and the budget, clustering is no longer needed on ResNet-18.
+
+**Caveats:** The ResNet-18 numbers come from a single teacher. DeepAbstract still uses its original BatchNorm recalibration. Fine-tuned (KD + EMA) results have not been rerun with the new method.
+
+## Running the ResNet-50 Experiments on the Cluster
+
+[`runResnet50.sh`](runResnet50.sh) is a Slurm script that runs two steps:
+
+1. **Train the teacher.** It runs [`experiments/train_teacher_cifar.py`](experiments/train_teacher_cifar.py): SGD with Nesterov momentum, warmup + cosine LR, crop/flip augmentation, 200 epochs. Training uses only the 40k training split, so the validation split used for causal profiling stays unseen. This step is skipped if the checkpoint already exists.
+2. **Run the suite.** It runs [`experiments/experiment_restructuring_suite.py`](experiments/experiment_restructuring_suite.py) at 10/20/30/50/80% kept. The suite covers DeepAbstract, the causal variants (original, + budget, + LSQ, + LSQ + budget) and the selection controls.
+
+```bash
+sbatch runResnet50.sh                 # one teacher (seed 0)
+sbatch --array=0-2 runResnet50.sh     # three teachers, for error bars
+```
+
+Each seed writes its outputs to `results/resnet50_seed<N>/`:
+- `suite.json`: every result, plus the per-layer sensitivity profiles.
+- `resnet50_restructuring.png`: accuracy and agreement plots.
+- `resnet50_selection_controls.png`: the selection-controls plot.
+- `resnet50_results.md`: a results table.
+
+The suite saves after every run. If a job hits the time limit, resubmit it and it continues where it stopped.
+
+Teacher checkpoints are written to `checkpoints/resnet50_cifar10.pth` (seed 0) or `checkpoints/resnet50_cifar10_seed<N>.pth`. The causal-score cache goes to `cache/`.
+
+To check the pipeline in a few minutes before submitting, train a throwaway teacher and run the suite in smoke mode:
+
+```bash
+python experiments/train_teacher_cifar.py --model resnet50 --epochs 1 --max_batches 20 --checkpoint /tmp/r50.pth
+python experiments/experiment_restructuring_suite.py --model resnet50 --smoke --targets 30 --checkpoint /tmp/r50.pth --out_dir /tmp/smoke
+```
+
+The same suite runs ResNet-18 with `--model resnet18`.
